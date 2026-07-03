@@ -1,6 +1,7 @@
 import { TIERS, TRACK_TYPES, fmtMoney, fmtInt } from "../core/config.js";
 import { incomePerMin } from "../sim/simulation.js";
 import { on } from "../core/bus.js";
+import { icon } from "./icons.js";
 
 export class Hud {
   constructor(game) {
@@ -20,25 +21,26 @@ export class Hud {
     el.className = "topbar";
     el.innerHTML = `
       <div class="stat"><div class="v cash" id="hud-cash"></div><div class="k">Cash</div></div>
-      <div class="stat"><div class="v" id="hud-income"></div><div class="k">Income /min</div></div>
+      <div class="stat"><div class="v" id="hud-income"></div><div class="k">Income / min</div></div>
       <div class="stat"><div class="v" id="hud-pax"></div><div class="k">Passengers</div></div>
-      <div class="stat"><div class="v" id="hud-trains"></div><div class="k">Trains</div></div>
       <div class="divider"></div>
       <div class="speed-group">
-        <button class="btn small" data-speed="0">⏸</button>
-        <button class="btn small" data-speed="1">1×</button>
-        <button class="btn small" data-speed="2">2×</button>
-        <button class="btn small" data-speed="4">4×</button>
+        <button class="btn small" data-speed="0" title="Pause (Space)">${icon("pause")}</button>
+        <button class="btn small" data-speed="1" title="Normal speed">1×</button>
+        <button class="btn small" data-speed="2" title="Double speed">2×</button>
+        <button class="btn small" data-speed="4" title="Quadruple speed">4×</button>
       </div>
       <div class="divider"></div>
-      <button class="btn" id="hud-map-toggle"></button>
-      <button class="btn danger small" id="hud-newgame">New Game</button>
+      <button class="btn" id="hud-map-toggle" title="Switch map (M)"></button>
+      <button class="btn quiet small" id="hud-help" title="How to play">${icon("info")}</button>
+      <button class="btn quiet small danger" id="hud-newgame" title="Start over">${icon("restart")}</button>
     `;
     this.root.appendChild(el);
     el.querySelectorAll("[data-speed]").forEach((b) =>
       b.addEventListener("click", () => { this.game.state.speed = +b.dataset.speed; })
     );
     el.querySelector("#hud-map-toggle").addEventListener("click", () => this.game.toggleMap());
+    el.querySelector("#hud-help").addEventListener("click", () => this.game.openIntro());
     el.querySelector("#hud-newgame").addEventListener("click", () => {
       if (confirm("Start a new game? Current progress will be erased.")) this.game.newGame();
     });
@@ -59,15 +61,15 @@ export class Hud {
     const perUnit = (n) => fmtMoney(t(n).costPerUnit[mapKey]);
     this.toolbar.innerHTML = `
       <div class="section">Tools</div>
-      <button class="btn tool" data-mode="select">🖱️ Select / Inspect</button>
-      <button class="btn tool" data-mode="station">🏛️ Build Station</button>
-      <div class="section">Track (per unit)</div>
-      <button class="btn tool" data-mode="track1"><span class="swatch" style="background:${hex(t(1).color)}"></span>Standard <span class="price">${perUnit(1)}</span></button>
-      <button class="btn tool" data-mode="track2"><span class="swatch" style="background:${hex(t(2).color)}"></span>High-Speed <span class="price">${perUnit(2)}</span></button>
-      <button class="btn tool" data-mode="track3"><span class="swatch" style="background:${hex(t(3).color)}"></span>Maglev <span class="price">${perUnit(3)}</span></button>
+      <button class="btn tool" data-mode="select" title="Inspect stops, track and trains">${icon("select")} Select <span class="key">1</span></button>
+      <button class="btn tool" data-mode="station" title="Build a station at a stop">${icon("station")} Station <span class="key">2</span></button>
+      <div class="section">Track</div>
+      <button class="btn tool" data-mode="track1" title="Tier I trains only"><span class="swatch" style="background:${hex(t(1).color)}"></span>Standard <span class="price">${perUnit(1)}/u</span><span class="key">3</span></button>
+      <button class="btn tool" data-mode="track2" title="Tier I and II trains"><span class="swatch" style="background:${hex(t(2).color)}"></span>High-Speed <span class="price">${perUnit(2)}/u</span><span class="key">4</span></button>
+      <button class="btn tool" data-mode="track3" title="Tier III maglev only"><span class="swatch" style="background:${hex(t(3).color)}"></span>Maglev <span class="price">${perUnit(3)}/u</span><span class="key">5</span></button>
       <div class="section">Manage</div>
-      <button class="btn tool" data-mode="bulldoze">💥 Bulldoze Track</button>
-      <button class="btn tool" id="tool-shop">🚆 Buy Train…</button>
+      <button class="btn tool" data-mode="bulldoze" title="Demolish track for a 25% refund">${icon("bulldoze")} Bulldoze <span class="key">6</span></button>
+      <button class="btn tool" id="tool-shop" title="Buy a new train">${icon("train")} Buy train <span class="key">B</span></button>
     `;
     this.toolbar.querySelectorAll("[data-mode]").forEach((b) =>
       b.addEventListener("click", () => this.game.setMode(b.dataset.mode))
@@ -102,7 +104,9 @@ export class Hud {
   toast(msg, kind = "") {
     const t = document.createElement("div");
     t.className = `toast ${kind}`;
-    t.textContent = msg;
+    const glyph = kind === "good" ? "check" : kind === "bad" ? "close" : "info";
+    t.innerHTML = `${icon(glyph)}<span></span>`;
+    t.lastChild.textContent = msg;
     this.toasts.appendChild(t);
     setTimeout(() => t.remove(), 3400);
     while (this.toasts.children.length > 4) this.toasts.firstChild.remove();
@@ -122,9 +126,10 @@ export class Hud {
     cashEl.classList.toggle("neg", s.cash < 0);
     document.getElementById("hud-income").textContent = fmtMoney(incomePerMin(s));
     document.getElementById("hud-pax").textContent = fmtInt(s.totalDelivered);
-    document.getElementById("hud-trains").textContent = Object.keys(s.trains).length;
-    document.getElementById("hud-map-toggle").textContent =
-      s.currentMap === "usa" ? "🗽 Enter NYC" : "🗺️ USA Map";
+    const toggle = document.getElementById("hud-map-toggle");
+    toggle.innerHTML = s.currentMap === "usa"
+      ? `${icon("pin")} NYC map`
+      : `${icon("map")} USA map`;
 
     this.root.querySelectorAll("[data-speed]").forEach((b) =>
       b.classList.toggle("active", +b.dataset.speed === s.speed)
@@ -138,9 +143,8 @@ export class Hud {
       const load = train.passengers.reduce((a, g) => a + g.count, 0);
       const noRoute = train.route.length < 2 || !train.path;
       chips.push(
-        `<div class="train-chip ${noRoute ? "noroute" : ""}" data-train="${train.id}">
-          <span class="dot" style="background:#${tier.color.toString(16).padStart(6, "0")}"></span>
-          ${tier.icon} #${train.num}
+        `<div class="train-chip ${noRoute ? "noroute" : ""}" data-train="${train.id}" title="${tier.name}">
+          ${icon(`tier${train.tier}`)} #${train.num}
           <span class="load">${noRoute ? "needs route" : `${load}/${tier.capacity}`}</span>
         </div>`
       );

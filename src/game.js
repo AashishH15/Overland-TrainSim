@@ -14,8 +14,11 @@ import { TrainRenderer } from "./render/trainRenderer.js";
 import { MAP_RENDER } from "./render/constants.js";
 import { Hud } from "./ui/hud.js";
 import { Inspector } from "./ui/inspector.js";
-import { openShop as openShopModal, openGameOver } from "./ui/shop.js";
+import { openShop as openShopModal, openGameOver, openIntro } from "./ui/shop.js";
+import { icon } from "./ui/icons.js";
 import { on, emit } from "./core/bus.js";
+
+const INTRO_KEY = "railEmpire.introSeen";
 
 export class Game {
   constructor() {
@@ -89,7 +92,13 @@ export class Game {
     this.loop();
 
     if (this.state.gameOver) openGameOver(this);
+    else if (!localStorage.getItem(INTRO_KEY)) {
+      localStorage.setItem(INTRO_KEY, "1");
+      openIntro(this, { firstRun: true });
+    }
   }
+
+  openIntro() { openIntro(this); }
 
   get activeBundle() { return this.bundles[this.state.currentMap]; }
   get activeMapState() { return this.state.maps[this.state.currentMap]; }
@@ -187,6 +196,7 @@ export class Game {
     }
     this.renderers[mapKey].nodes.rebuildNode(node);
     if (this.inspector.current?.id === nodeId) this.inspector.showNode(nodeId);
+    this.updateHint();
   }
 
   tryBuildTrack(aId, bId, type) {
@@ -211,7 +221,7 @@ export class Game {
     this.renderers[mapKey].track.sync();
     revalidateTrains(this.state);
     const bridge = wf > 0.02 ? ` (${Math.round(wf * 100)}% bridge)` : "";
-    emit("toast", { msg: `${TRACK_TYPES[type].name} laid — ${fmtMoney(cost)}${bridge}`, kind: "good" });
+    emit("toast", { msg: `${TRACK_TYPES[type].name} laid for ${fmtMoney(cost)}${bridge}`, kind: "good" });
     // Chain: continue drawing from the new endpoint.
     this.trackStart = bId;
   }
@@ -253,7 +263,7 @@ export class Game {
       route: [], path: null, seg: 0, prog: 0, dwell: 0,
       state: "idle", passengers: [], revenueTotal: 0,
     };
-    emit("toast", { msg: `${t.icon} ${t.short} train purchased — now pick its route`, kind: "good" });
+    emit("toast", { msg: `${t.short} train purchased. Now pick its route.`, kind: "good" });
     this.startRouteAssign(id);
     return true;
   }
@@ -317,7 +327,7 @@ export class Game {
       });
       return;
     }
-    emit("toast", { msg: "Route assigned — all aboard!", kind: "good" });
+    emit("toast", { msg: "Route assigned. All aboard!", kind: "good" });
     this.routeDraft = null;
     this.setMode("select");
   }
@@ -347,10 +357,15 @@ export class Game {
         this.inspector.close();
       }
       if (e.key === "Enter" && this.routeDraft) this.finishRouteAssign();
-      if (e.key === " " && !e.target.closest?.("input")) {
+      if (e.target.closest?.("input, textarea")) return;
+      if (e.key === " ") {
         e.preventDefault();
         this.state.speed = this.state.speed === 0 ? 1 : 0;
       }
+      const modeKeys = { 1: "select", 2: "station", 3: "track1", 4: "track2", 5: "track3", 6: "bulldoze" };
+      if (modeKeys[e.key]) this.setMode(modeKeys[e.key]);
+      if (e.key === "b" || e.key === "B") this.openShop();
+      if (e.key === "m" || e.key === "M") this.toggleMap();
     });
   }
 
@@ -480,9 +495,9 @@ export class Game {
     mesh.rotation.y = Math.atan2(bx - na.x, bz - na.z);
     this.activeBundle.previewGroup.add(mesh);
 
-    const bridge = wf > 0.02 ? ` · ${Math.round(wf * 100)}% over water` : "";
+    const bridge = wf > 0.02 ? ` (${Math.round(wf * 100)}% over water)` : "";
     this.hud.setHint(
-      `Laying <b>${TRACK_TYPES[type].name}</b> from <b>${na.name}</b> — <span class="cost">${fmtMoney(cost)}</span>${bridge} · right-click to cancel`
+      `${icon("route")} <b>${TRACK_TYPES[type].name}</b> from <b>${na.name}</b>: <span class="cost">${fmtMoney(cost)}</span>${bridge} · right-click cancels`
     );
   }
 
@@ -512,27 +527,50 @@ export class Game {
     }
   }
 
+  // What should the player do next? Drives the guidance shown in select mode.
+  nextStepHint() {
+    const ms = this.activeMapState;
+    const stations = Object.values(ms.nodes).filter((n) => n.station).length;
+    const edges = Object.keys(ms.edges).length;
+    const trains = Object.values(this.state.trains).filter((t) => t.map === this.state.currentMap);
+    const unrouted = trains.find((t) => t.route.length < 2);
+    if (stations < 2) {
+      return `${icon("station")} Start with the <b>Station</b> tool: build stations at ${stations === 0 ? "two nearby stops" : "one more stop"}`;
+    }
+    if (edges === 0) {
+      return `${icon("route")} Pick a <b>track</b> type, then click one station and then another to connect them`;
+    }
+    if (trains.length === 0) {
+      return `${icon("train")} Press <b>B</b> or use <b>Buy train</b> to put your first train on the rails`;
+    }
+    if (unrouted) {
+      return `${icon("route")} Train #${unrouted.num} has no route. Click its chip on the right to set one`;
+    }
+    return null;
+  }
+
   updateHint() {
     const mode = this.mode;
     if (mode === "select") {
-      this.hud.setHint(`Click any <b>stop</b>, <b>track</b> or <b>train</b> to inspect · drag to orbit, scroll to zoom`);
+      const next = this.nextStepHint();
+      this.hud.setHint(next ?? `${icon("select")} Click any <b>stop</b>, <b>track</b> or <b>train</b> to inspect it`);
     } else if (mode === "station") {
-      this.hud.setHint(`<b>Station mode:</b> click a stop node to build a station (locked metros unlock + build in one click)`);
+      this.hud.setHint(`${icon("station")} Click a stop to build a station. Locked metros unlock and build in one click`);
     } else if (mode.startsWith("track")) {
       const type = +mode.slice(5);
       if (!this.trackStart) {
-        this.hud.setHint(`<b>${TRACK_TYPES[type].name}:</b> click the first station · water crossings cost ×2.6`);
+        this.hud.setHint(`${icon("route")} <b>${TRACK_TYPES[type].name}:</b> click the first station to start the line`);
       }
     } else if (mode === "bulldoze") {
-      this.hud.setHint(`<b>Bulldoze:</b> click a track segment to demolish (25% refund)`);
+      this.hud.setHint(`${icon("bulldoze")} Click a track segment to demolish it for a 25% refund`);
     } else if (mode === "route") {
       const n = this.routeDraft?.stops.length ?? 0;
       const train = this.state.trains[this.routeDraft?.trainId];
       const tierName = train ? TIERS[train.tier].short : "";
       this.hud.setHint(
-        `<b>Route for ${tierName} train:</b> click stations in order (${n} picked) ·
-         <button class="btn small primary" id="hint-done">✓ Done</button>
-         <button class="btn small" id="hint-cancel">✕ Cancel</button>`
+        `${icon("route")} <b>Route for ${tierName} #${train?.num ?? ""}:</b> click stations in order (${n} picked)
+         <button class="btn small primary" id="hint-done">Done</button>
+         <button class="btn small quiet" id="hint-cancel">Cancel</button>`
       );
       document.getElementById("hint-done")?.addEventListener("click", () => this.finishRouteAssign());
       document.getElementById("hint-cancel")?.addEventListener("click", () => {

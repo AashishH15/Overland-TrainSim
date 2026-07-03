@@ -57,7 +57,7 @@ export class NodesRenderer {
       );
       dot.position.y = 0.09 * s;
       group.add(dot);
-      const lock = makeLabel(`🔒 ${node.name}`, { size: this.cfg.labelSize * 0.8, color: "#aab4c2" });
+      const lock = makeLabel(node.name, { size: this.cfg.labelSize * 0.8, color: "#aab4c2", lock: true });
       lock.position.y = 1.6 * s;
       group.add(lock);
     } else if (status === "unlocked") {

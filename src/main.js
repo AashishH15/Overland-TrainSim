@@ -1,3 +1,4 @@
+import "@fontsource-variable/outfit";
 import * as THREE from "three";
 import { Game } from "./game.js";
 

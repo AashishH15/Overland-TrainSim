@@ -1,5 +1,6 @@
 import { TIERS, TRACK_TYPES, fmtMoney, fmtInt } from "../core/config.js";
 import { stationCost, nodeUnlockCost, upgradeCost, bulldozeRefund } from "../core/economy.js";
+import { icon } from "./icons.js";
 
 export class Inspector {
   constructor(game) {
@@ -19,7 +20,7 @@ export class Inspector {
     this.close();
     this.el = document.createElement("div");
     this.el.className = "inspector";
-    this.el.innerHTML = `<button class="close">✕</button>${html}`;
+    this.el.innerHTML = `<button class="close" title="Close">${icon("close")}</button>${html}`;
     document.getElementById("hud").appendChild(this.el);
     this.el.querySelector(".close").addEventListener("click", () => this.close());
   }
@@ -42,23 +43,23 @@ export class Inspector {
     this.current = { kind: "node", id: nodeId };
 
     const waiting = node.waiting.reduce((a, x) => a + x.count, 0);
-    const status = node.station ? "Station built" : node.unlocked ? "Unlocked — no station" : "Locked";
+    const status = node.station ? "Station built" : node.unlocked ? "No station yet" : "Locked";
     const rows = [
       ["Status", status],
-      ["Demand", `${node.demand} pax-pts`],
-      node.pop ? ["Metro pop.", `${node.pop}M (rank #${node.rank})`] : null,
+      ["Demand", `${node.demand} pts`],
+      node.pop ? ["Metro pop.", `${node.pop}M (rank ${node.rank})`] : null,
       ["Waiting", fmtInt(waiting)],
       ["Delivered here", fmtInt(node.servedTotal)],
     ].filter(Boolean);
 
     const actions = [];
     if (!node.unlocked) {
-      actions.push(`<button class="btn primary" data-act="unlock">Unlock — ${fmtMoney(nodeUnlockCost(node))}</button>`);
+      actions.push(`<button class="btn primary" data-act="unlock">${icon("lock")} Unlock for ${fmtMoney(nodeUnlockCost(node))}</button>`);
     } else if (!node.station) {
-      actions.push(`<button class="btn primary" data-act="station">Build Station — ${fmtMoney(stationCost(mapKey, node))}</button>`);
+      actions.push(`<button class="btn primary" data-act="station">${icon("station")} Build station for ${fmtMoney(stationCost(mapKey, node))}</button>`);
     }
     if (mapKey === "usa" && node.rank === 1) {
-      actions.push(`<button class="btn" data-act="enternyc">🗽 Enter NYC Map</button>`);
+      actions.push(`<button class="btn" data-act="enternyc">${icon("pin")} Enter NYC map</button>`);
     }
 
     this.open(`
@@ -95,13 +96,13 @@ export class Inspector {
     const actions = [];
     for (const up of [2, 3]) {
       if (up > edge.type) {
-        actions.push(`<button class="btn" data-up="${up}">Upgrade to ${TRACK_TYPES[up].name} — ${fmtMoney(upgradeCost(mapKey, edge, up))}</button>`);
+        actions.push(`<button class="btn" data-up="${up}">${icon("lightning")} Upgrade to ${TRACK_TYPES[up].name} for ${fmtMoney(upgradeCost(mapKey, edge, up))}</button>`);
       }
     }
-    actions.push(`<button class="btn danger" data-act="remove">Demolish (refund ${fmtMoney(bulldozeRefund(mapKey, edge))})</button>`);
+    actions.push(`<button class="btn danger" data-act="remove">${icon("bulldoze")} Demolish, refund ${fmtMoney(bulldozeRefund(mapKey, edge))}</button>`);
 
     this.open(`
-      <h3>Track Segment</h3>
+      <h3>Track segment</h3>
       <div class="sub">${tt.name}</div>
       ${rows.map(([k, v]) => `<div class="row"><span class="k">${k}</span><span>${v}</span></div>`).join("")}
       <div class="actions">${actions.join("")}</div>
@@ -130,18 +131,18 @@ export class Inspector {
       ["Speed", `${tier.speed[train.map]} u/s`],
       ["Load", `${fmtInt(load)} / ${tier.capacity}`],
       ["State", train.state],
-      ["Route", train.route.length >= 2 ? routeNames : "— none —"],
+      ["Route", train.route.length >= 2 ? routeNames : "not set"],
       ["Lifetime revenue", fmtMoney(train.revenueTotal)],
       ["Operating cost", `${fmtMoney(tier.opsPerMin)}/min`],
     ];
 
     this.open(`
-      <h3>${tier.icon} ${tier.short} Train #${train.num}</h3>
+      <h3>${tier.short} Train #${train.num}</h3>
       <div class="sub">${train.map === "usa" ? "National network" : "NYC network"}</div>
       ${rows.map(([k, v]) => `<div class="row"><span class="k">${k}</span><span>${v}</span></div>`).join("")}
       <div class="actions">
-        <button class="btn primary" data-act="route">✏️ Set Route</button>
-        <button class="btn danger" data-act="sell">Sell — ${fmtMoney(tier.price * 0.5)}</button>
+        <button class="btn primary" data-act="route">${icon("route")} Set route</button>
+        <button class="btn danger" data-act="sell">${icon("coins")} Sell for ${fmtMoney(tier.price * 0.5)}</button>
       </div>
     `);
 

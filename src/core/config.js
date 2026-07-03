@@ -34,9 +34,8 @@ export const WATER_COST_MULT = 2.6;
 export const TIERS = {
   1: {
     id: 1,
-    name: "Tier I — Standard Rail",
+    name: "Tier I Standard Rail",
     short: "Standard",
-    icon: "🚂",
     desc: "Classic boxy regional train. Cheap, flexible, runs on standard or high-speed track.",
     speed: { usa: 7, nyc: 9 },       // world units / sim-second
     capacity: 200,
@@ -48,9 +47,8 @@ export const TIERS = {
   },
   2: {
     id: 2,
-    name: "Tier II — High-Speed Rail",
+    name: "Tier II High-Speed Rail",
     short: "High-Speed",
-    icon: "🚄",
     desc: "Sleek aerodynamic trainset up to 220 mph. Requires dedicated High-Speed Track.",
     speed: { usa: 14, nyc: 15 },
     capacity: 320,
@@ -62,9 +60,8 @@ export const TIERS = {
   },
   3: {
     id: 3,
-    name: "Tier III — Maglev",
+    name: "Tier III Maglev",
     short: "Maglev",
-    icon: "🚝",
     desc: "Futuristic maglev pod up to 400 mph. Requires premium Maglev Guideway.",
     speed: { usa: 24, nyc: 24 },
     capacity: 420,
