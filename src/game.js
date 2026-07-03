@@ -139,6 +139,12 @@ export class Game {
     document.getElementById("hint-cancel-action")?.addEventListener("click", () => this.cancelAction());
   }
 
+  mobileSelectHint(next) {
+    if (next) return next;
+    // Idle select on mobile: hide the bar to keep the map visible.
+    return null;
+  }
+
   get activeBundle() { return this.bundles[this.state.currentMap]; }
   get activeMapState() { return this.state.maps[this.state.currentMap]; }
 
@@ -626,7 +632,7 @@ export class Game {
       return `${icon("train")} Press <b>B</b> or use <b>Buy train</b> to put your first train on the rails`;
     }
     if (unrouted) {
-      return `${icon("route")} Train #${unrouted.num} has no route. Click its chip on the right to set one`;
+      return `${icon("route")} Train #${unrouted.num} needs a route — tap its chip`;
     }
     return null;
   }
@@ -634,17 +640,21 @@ export class Game {
   updateHint() {
     const mode = this.mode;
     if (mode === "pan") {
-      this.bindHintActions(`${icon("pan")} <b>Move mode:</b> drag to pan the map · pinch or scroll to zoom · right-drag to rotate`);
+      this.bindHintActions(`${icon("pan")} Drag to move · pinch to zoom`);
     } else if (mode === "select") {
-      const next = this.nextStepHint();
+      const next = isMobileExperience() ? this.mobileSelectHint(this.nextStepHint()) : this.nextStepHint();
+      if (!next && isMobileExperience()) {
+        this.hud.setHint("");
+        return;
+      }
       const touchTip = isMobileExperience()
-        ? " · use <b>Move</b> to drag the map"
+        ? ""
         : " · press <b>0</b> or pick <b>Move</b> to drag-pan without Ctrl";
       this.bindHintActions(
-        next ?? `${icon("select")} Tap any <b>stop</b>, <b>track</b> or <b>train</b> to inspect${touchTip}`
+        next ?? `${icon("select")} Click any <b>stop</b>, <b>track</b> or <b>train</b> to inspect${touchTip}`
       );
     } else if (mode === "station") {
-      this.bindHintActions(`${icon("station")} Tap a stop to build a station. Locked metros unlock and build in one click`);
+      this.bindHintActions(`${icon("station")} Tap a stop to build a station`);
     } else if (mode.startsWith("track")) {
       const type = +mode.slice(5);
       if (!this.trackStart) {

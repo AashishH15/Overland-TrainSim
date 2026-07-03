@@ -20,21 +20,23 @@ export class Hud {
     const el = document.createElement("div");
     el.className = "topbar";
     el.innerHTML = `
-      <div class="stat"><div class="v cash" id="hud-cash"></div><div class="k">Cash</div></div>
-      <div class="stat"><div class="v" id="hud-income"></div><div class="k">Income / min</div></div>
-      <div class="stat"><div class="v" id="hud-pax"></div><div class="k">Passengers</div></div>
-      <div class="stat"><div class="v" id="hud-trains"></div><div class="k">Trains</div></div>
-      <div class="divider"></div>
-      <div class="speed-group">
-        <button class="btn small" data-speed="0" title="Pause (Space)">${icon("pause")}</button>
-        <button class="btn small" data-speed="1" title="Normal speed">1×</button>
-        <button class="btn small" data-speed="2" title="Double speed">2×</button>
-        <button class="btn small" data-speed="4" title="Quadruple speed">4×</button>
+      <div class="topbar-stats">
+        <div class="stat" title="Cash"><div class="v cash" id="hud-cash"></div><div class="k">Cash</div></div>
+        <div class="stat" title="Income per minute"><div class="v" id="hud-income"></div><div class="k">Income / min</div></div>
+        <div class="stat" title="Passengers delivered"><div class="v" id="hud-pax"></div><div class="k">Passengers</div></div>
+        <div class="stat" title="Trains owned"><div class="v" id="hud-trains"></div><div class="k">Trains</div></div>
       </div>
-      <div class="divider"></div>
-      <button class="btn" id="hud-map-toggle" title="Switch map (M)"></button>
-      <button class="btn quiet small" id="hud-help" title="How to play">${icon("info")}</button>
-      <button class="btn quiet small danger" id="hud-newgame" title="Start over">${icon("restart")}</button>
+      <div class="topbar-actions">
+        <div class="speed-group">
+          <button class="btn small" data-speed="0" title="Pause (Space)">${icon("pause")}</button>
+          <button class="btn small" data-speed="1" title="Normal speed">1×</button>
+          <button class="btn small" data-speed="2" title="Double speed">2×</button>
+          <button class="btn small" data-speed="4" title="Quadruple speed">4×</button>
+        </div>
+        <button class="btn small" id="hud-map-toggle" title="Switch map (M)"></button>
+        <button class="btn quiet small" id="hud-help" title="How to play">${icon("info")}</button>
+        <button class="btn quiet small danger" id="hud-newgame" title="Start over">${icon("restart")}</button>
+      </div>
     `;
     this.root.appendChild(el);
     el.querySelectorAll("[data-speed]").forEach((b) =>
@@ -94,7 +96,9 @@ export class Hud {
 
   setHint(html) {
     this.hintbar.innerHTML = html;
-    this.hintbar.style.display = html ? "flex" : "none";
+    const show = !!html;
+    this.hintbar.style.display = show ? "flex" : "none";
+    this.hintbar.classList.toggle("visible", show);
   }
 
   buildToasts() {
@@ -131,8 +135,8 @@ export class Hud {
     document.getElementById("hud-trains").textContent = Object.keys(s.trains).length;
     const toggle = document.getElementById("hud-map-toggle");
     toggle.innerHTML = s.currentMap === "usa"
-      ? `${icon("pin")} NYC map`
-      : `${icon("map")} USA map`;
+      ? `${icon("pin")}<span class="map-label"> NYC</span>`
+      : `${icon("map")}<span class="map-label"> USA</span>`;
 
     this.root.querySelectorAll("[data-speed]").forEach((b) =>
       b.classList.toggle("active", +b.dataset.speed === s.speed)
@@ -153,6 +157,7 @@ export class Hud {
       );
     }
     this.fleet.innerHTML = chips.join("");
+    this.fleet.style.display = chips.length ? "flex" : "none";
     this.fleet.querySelectorAll("[data-train]").forEach((c) =>
       c.addEventListener("click", () => this.game.inspectTrain(c.dataset.train))
     );
