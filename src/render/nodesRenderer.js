@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { makeLabel } from "./labels.js";
 import { MAP_RENDER } from "./constants.js";
 import { USA_METROS, metroColor } from "../data/usaMetros.js";
+import { zoomScale } from "./viewScale.js";
 
 // Renders stop nodes (locked / unlocked / station) and keeps them in sync.
 export class NodesRenderer {
@@ -26,6 +27,11 @@ export class NodesRenderer {
     for (const node of Object.values(this.state.maps[this.mapKey].nodes)) {
       this.rebuildNode(node);
     }
+  }
+
+  tagLabel(sprite) {
+    sprite.userData.labelBase = sprite.scale.clone();
+    return sprite;
   }
 
   statusOf(node) {
@@ -57,7 +63,7 @@ export class NodesRenderer {
       );
       dot.position.y = 0.09 * s;
       group.add(dot);
-      const lock = makeLabel(node.name, { size: this.cfg.labelSize * 0.8, color: "#aab4c2", lock: true });
+      const lock = this.tagLabel(makeLabel(node.name, { size: this.cfg.labelSize * 0.8, color: "#aab4c2", lock: true }));
       lock.position.y = 1.6 * s;
       group.add(lock);
     } else if (status === "unlocked") {
@@ -74,7 +80,7 @@ export class NodesRenderer {
       );
       dot.position.y = 0.07 * s;
       group.add(dot);
-      const label = makeLabel(node.name, { size: this.cfg.labelSize * 0.85, color: "#dfe6ee" });
+      const label = this.tagLabel(makeLabel(node.name, { size: this.cfg.labelSize * 0.85, color: "#dfe6ee" }));
       label.position.y = 1.7 * s;
       group.add(label);
     } else {
@@ -107,7 +113,7 @@ export class NodesRenderer {
       roof.rotation.y = Math.PI / 4;
       roof.position.set(demandR * 0.75, 0.98 * s, -demandR * 0.75);
       group.add(roof);
-      const label = makeLabel(node.name, { size: this.cfg.labelSize, color: "#ffffff" });
+      const label = this.tagLabel(makeLabel(node.name, { size: this.cfg.labelSize, color: "#ffffff" }));
       label.position.y = 2.0 * s;
       group.add(label);
 
@@ -137,9 +143,16 @@ export class NodesRenderer {
 
   // Called every frame: grows the waiting bar with queued passengers.
   update() {
+    const z = zoomScale(this.bundle.camera, this.bundle.controls.target, this.mapKey);
     for (const node of Object.values(this.state.maps[this.mapKey].nodes)) {
       const m = this.meshes[node.id];
-      if (!m?.group.userData.waitBar) continue;
+      if (!m) continue;
+      m.group.traverse((o) => {
+        if (o.userData?.labelBase) {
+          o.scale.set(o.userData.labelBase.x * z, o.userData.labelBase.y * z, 1);
+        }
+      });
+      if (!m.group.userData.waitBar) continue;
       const waiting = node.waiting.reduce((sum, g) => sum + g.count, 0);
       const bar = m.group.userData.waitBar;
       if (waiting < 1) {

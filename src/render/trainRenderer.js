@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { TIERS } from "../core/config.js";
 import { MAP_RENDER } from "./constants.js";
+import { trainWorldScale } from "./viewScale.js";
 
 const mat = (color) => new THREE.MeshLambertMaterial({ color, flatShading: true });
 
@@ -99,13 +100,17 @@ export class TrainRenderer {
       if (t.map !== this.mapKey || this.meshes[id]) continue;
       const g = BUILDERS[t.tier]();
       g.traverse((o) => { o.castShadow = true; });
-      const s = MAP_RENDER[this.mapKey].trainScale;
-      g.scale.setScalar(s);
-      g.userData = { kind: "train", id, map: this.mapKey };
+      g.userData = { kind: "train", id, map: this.mapKey, baseScale: MAP_RENDER[this.mapKey].trainScale };
       g.traverse((o) => (o.userData = g.userData));
       this.bundle.trainGroup.add(g);
       this.meshes[id] = g;
     }
+  }
+
+  applyScale(mesh, worldPos) {
+    const { camera, controls } = this.bundle;
+    const s = mesh.userData.baseScale * trainWorldScale(this.mapKey, camera, controls.target);
+    mesh.scale.setScalar(s);
   }
 
   update() {
@@ -116,10 +121,10 @@ export class TrainRenderer {
       const train = this.state.trains[id];
       const g = this.meshes[id];
       if (!train.path || train.state === "idle") {
-        // Idle trains park at their first route stop (or map corner).
         const home = ms.nodes[train.route[0]];
-        if (home) g.position.set(home.x + 2, cfg.trackY + 0.1, home.z + 2);
-        else g.position.set(0, cfg.trackY + 0.1, 0);
+        if (home) g.position.set(home.x + 2, cfg.trackY + 0.06, home.z + 2);
+        else g.position.set(0, cfg.trackY + 0.06, 0);
+        this.applyScale(g, g.position);
         continue;
       }
       const a = ms.nodes[train.path[train.seg]];
@@ -129,8 +134,9 @@ export class TrainRenderer {
       const t = Math.min(1, train.prog / segLen);
       const x = a.x + (b.x - a.x) * t;
       const z = a.z + (b.z - a.z) * t;
-      g.position.set(x, cfg.trackY + 0.08 * cfg.trainScale, z);
+      g.position.set(x, cfg.trackY + 0.05, z);
       g.rotation.y = Math.atan2(b.x - a.x, b.z - a.z) + Math.PI;
+      this.applyScale(g, g.position);
     }
   }
 }
