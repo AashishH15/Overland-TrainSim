@@ -23,6 +23,7 @@ export class Hud {
       <div class="stat"><div class="v cash" id="hud-cash"></div><div class="k">Cash</div></div>
       <div class="stat"><div class="v" id="hud-income"></div><div class="k">Income / min</div></div>
       <div class="stat"><div class="v" id="hud-pax"></div><div class="k">Passengers</div></div>
+      <div class="stat"><div class="v" id="hud-trains"></div><div class="k">Trains</div></div>
       <div class="divider"></div>
       <div class="speed-group">
         <button class="btn small" data-speed="0" title="Pause (Space)">${icon("pause")}</button>
@@ -126,6 +127,7 @@ export class Hud {
     cashEl.classList.toggle("neg", s.cash < 0);
     document.getElementById("hud-income").textContent = fmtMoney(incomePerMin(s));
     document.getElementById("hud-pax").textContent = fmtInt(s.totalDelivered);
+    document.getElementById("hud-trains").textContent = Object.keys(s.trains).length;
     const toggle = document.getElementById("hud-map-toggle");
     toggle.innerHTML = s.currentMap === "usa"
       ? `${icon("pin")} NYC map`
