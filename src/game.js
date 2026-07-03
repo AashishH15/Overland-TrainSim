@@ -77,6 +77,10 @@ export class Game {
       if (document.hidden) {
         const dt = Math.min((now - this.lastHiddenTick) / 1000, 2);
         stepSimulation(this.state, dt);
+        // rAF is paused while hidden; draw an occasional frame so the view
+        // is current the moment the tab becomes visible again.
+        this.renderers[this.state.currentMap].trains.update();
+        this.renderer.render(this.activeBundle.scene, this.activeBundle.camera);
       }
       this.lastHiddenTick = now;
     }, 500);
