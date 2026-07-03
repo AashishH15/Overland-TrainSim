@@ -89,7 +89,7 @@ export function openIntro(game, { firstRun = false } = {}) {
         </div>
       </div>
       <div class="controls-hint">
-        <b>Drag</b> to orbit · <b>Scroll</b> to zoom · <b>Right-click / Esc</b> cancels ·
+        <b>Drag</b> to orbit · <b>Scroll / pinch</b> to zoom · <b>Right-click / Cancel</b> backs out ·
         <b>Space</b> pauses · <b>1-6</b> select tools · <b>M</b> switches map
       </div>
       <div class="modal-footer">

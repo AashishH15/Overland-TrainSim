@@ -1,9 +1,11 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { isMobileExperience } from "../util/device.js";
 
 export function createRenderer() {
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+  const cap = isMobileExperience() ? 1.5 : 2;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, cap));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -36,7 +38,7 @@ export function createSceneBundle(renderer, opts) {
   const sun = new THREE.DirectionalLight(0xfff2d8, 2.0);
   sun.position.set(-120, 180, -80);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.mapSize.set(isMobileExperience() ? 1024 : 2048, isMobileExperience() ? 1024 : 2048);
   const s = opts.shadowExtent;
   sun.shadow.camera.left = -s;
   sun.shadow.camera.right = s;

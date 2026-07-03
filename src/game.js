@@ -16,6 +16,7 @@ import { Hud } from "./ui/hud.js";
 import { Inspector } from "./ui/inspector.js";
 import { openShop as openShopModal, openGameOver, openIntro } from "./ui/shop.js";
 import { icon } from "./ui/icons.js";
+import { isMobileExperience, tapSlack } from "./util/device.js";
 import { on, emit } from "./core/bus.js";
 
 const INTRO_KEY = "railEmpire.introSeen";
@@ -60,6 +61,8 @@ export class Game {
 
     this.raycaster = new THREE.Raycaster();
     this.pointer = new THREE.Vector2();
+    this.touchPointers = 0;
+    this.configureMobile();
     this.bindInput();
 
     this.activeBundle.controls.enabled = true;
@@ -99,6 +102,41 @@ export class Game {
   }
 
   openIntro() { openIntro(this); }
+
+  configureMobile() {
+    if (!isMobileExperience()) return;
+    document.documentElement.classList.add("mobile");
+    for (const [key, b] of Object.entries(this.bundles)) {
+      b.controls.rotateSpeed = 0.7;
+      b.controls.zoomSpeed = 0.85;
+      b.controls.panSpeed = 0.75;
+      if (key === "usa") {
+        b.controls.minDistance = 50;
+        b.controls.maxDistance = 400;
+      } else {
+        b.controls.minDistance = 20;
+        b.controls.maxDistance = 260;
+      }
+    }
+  }
+
+  cancelAction() {
+    this.onRightClick();
+  }
+
+  bindHintActions(html, { done = false } = {}) {
+    const needsCancel = this.mode !== "select" || this.trackStart;
+    if (!done && !needsCancel) {
+      this.hud.setHint(html);
+      return;
+    }
+    const actions = [];
+    if (done) actions.push(`<button class="btn small primary" id="hint-done">Done</button>`);
+    if (needsCancel) actions.push(`<button class="btn small quiet" id="hint-cancel-action">Cancel</button>`);
+    this.hud.setHint(`${html} <span class="hint-actions">${actions.join("")}</span>`);
+    document.getElementById("hint-done")?.addEventListener("click", () => this.finishRouteAssign());
+    document.getElementById("hint-cancel-action")?.addEventListener("click", () => this.cancelAction());
+  }
 
   get activeBundle() { return this.bundles[this.state.currentMap]; }
   get activeMapState() { return this.state.maps[this.state.currentMap]; }
@@ -339,14 +377,29 @@ export class Game {
   bindInput() {
     const el = this.renderer.domElement;
     let downPos = null;
-    el.addEventListener("pointerdown", (e) => { downPos = [e.clientX, e.clientY]; });
+    let downPointer = null;
+
+    el.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "touch") this.touchPointers++;
+      downPos = [e.clientX, e.clientY];
+      downPointer = e.pointerId;
+    });
     el.addEventListener("pointerup", (e) => {
-      if (!downPos) return;
+      if (e.pointerType === "touch") this.touchPointers = Math.max(0, this.touchPointers - 1);
+      if (!downPos || e.pointerId !== downPointer) return;
+      const slack = tapSlack();
       const moved = Math.hypot(e.clientX - downPos[0], e.clientY - downPos[1]);
       downPos = null;
-      if (moved > 6) return; // it was a camera drag
+      downPointer = null;
+      if (moved > slack) return;
+      if (this.touchPointers > 0) return;
       if (e.button === 2) { this.onRightClick(); return; }
       this.onClick(e);
+    });
+    el.addEventListener("pointercancel", (e) => {
+      if (e.pointerType === "touch") this.touchPointers = Math.max(0, this.touchPointers - 1);
+      downPos = null;
+      downPointer = null;
     });
     el.addEventListener("pointermove", (e) => this.onPointerMove(e));
     el.addEventListener("contextmenu", (e) => e.preventDefault());
@@ -496,8 +549,9 @@ export class Game {
     this.activeBundle.previewGroup.add(mesh);
 
     const bridge = wf > 0.02 ? ` (${Math.round(wf * 100)}% over water)` : "";
-    this.hud.setHint(
-      `${icon("route")} <b>${TRACK_TYPES[type].name}</b> from <b>${na.name}</b>: <span class="cost">${fmtMoney(cost)}</span>${bridge} · right-click cancels`
+    const cancelNote = isMobileExperience() ? "" : " · right-click cancels";
+    this.bindHintActions(
+      `${icon("route")} <b>${TRACK_TYPES[type].name}</b> from <b>${na.name}</b>: <span class="cost">${fmtMoney(cost)}</span>${bridge}${cancelNote}`
     );
   }
 
@@ -553,30 +607,29 @@ export class Game {
     const mode = this.mode;
     if (mode === "select") {
       const next = this.nextStepHint();
-      this.hud.setHint(next ?? `${icon("select")} Click any <b>stop</b>, <b>track</b> or <b>train</b> to inspect it`);
+      const touchTip = isMobileExperience()
+        ? " · <b>One finger</b> drag to orbit, pinch to zoom"
+        : "";
+      this.bindHintActions(
+        next ?? `${icon("select")} Tap any <b>stop</b>, <b>track</b> or <b>train</b> to inspect${touchTip}`
+      );
     } else if (mode === "station") {
-      this.hud.setHint(`${icon("station")} Click a stop to build a station. Locked metros unlock and build in one click`);
+      this.bindHintActions(`${icon("station")} Tap a stop to build a station. Locked metros unlock and build in one click`);
     } else if (mode.startsWith("track")) {
       const type = +mode.slice(5);
       if (!this.trackStart) {
-        this.hud.setHint(`${icon("route")} <b>${TRACK_TYPES[type].name}:</b> click the first station to start the line`);
+        this.bindHintActions(`${icon("route")} <b>${TRACK_TYPES[type].name}:</b> tap the first station to start the line`);
       }
     } else if (mode === "bulldoze") {
-      this.hud.setHint(`${icon("bulldoze")} Click a track segment to demolish it for a 25% refund`);
+      this.bindHintActions(`${icon("bulldoze")} Tap a track segment to demolish it for a 25% refund`);
     } else if (mode === "route") {
       const n = this.routeDraft?.stops.length ?? 0;
       const train = this.state.trains[this.routeDraft?.trainId];
       const tierName = train ? TIERS[train.tier].short : "";
-      this.hud.setHint(
-        `${icon("route")} <b>Route for ${tierName} #${train?.num ?? ""}:</b> click stations in order (${n} picked)
-         <button class="btn small primary" id="hint-done">Done</button>
-         <button class="btn small quiet" id="hint-cancel">Cancel</button>`
+      this.bindHintActions(
+        `${icon("route")} <b>Route for ${tierName} #${train?.num ?? ""}:</b> tap stations in order (${n} picked)`,
+        { done: true }
       );
-      document.getElementById("hint-done")?.addEventListener("click", () => this.finishRouteAssign());
-      document.getElementById("hint-cancel")?.addEventListener("click", () => {
-        this.routeDraft = null;
-        this.setMode("select");
-      });
     }
   }
 
@@ -584,6 +637,7 @@ export class Game {
 
   onResize() {
     const w = window.innerWidth, h = window.innerHeight;
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobileExperience() ? 1.5 : 2));
     this.renderer.setSize(w, h);
     for (const b of Object.values(this.bundles)) {
       b.camera.aspect = w / h;
