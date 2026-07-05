@@ -83,7 +83,7 @@ five categories (unlocked once per browser, not per save):
 | **Skill** | Clean sheet (20m zero lost), Minimalist (30m with ≤2 trains), Smooth operator (4 trains, no overcrowding) |
 | **Network** | National network (50 metros), Mass transit / Nation moved / Main line (10k–100k delivered), City network (15 NYC stations) |
 | **Expert** | Empire Grade (5h), Empire Ascendant (10h), Mass Transit Titan (1M delivered), Maglev Nation (all 50 metros on Maglev Guideway only) |
-| **Capstone** | **Jack of all trades** ★ — unlock every other Survival badge |
+| **Capstone** | **Jack of all trades** — unlock every other Survival badge |
 
 Badge progress uses **sim-time** (not wall-clock), so playing at 4× speed does
 not shorten duration badges — you still survive the same amount of in-game time,

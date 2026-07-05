@@ -20,6 +20,7 @@ import info from "@phosphor-icons/core/assets/bold/info-bold.svg?raw";
 import lightning from "@phosphor-icons/core/assets/bold/lightning-bold.svg?raw";
 import lockSimple from "@phosphor-icons/core/assets/bold/lock-simple-bold.svg?raw";
 import medal from "@phosphor-icons/core/assets/bold/medal-bold.svg?raw";
+import star from "@phosphor-icons/core/assets/bold/star-bold.svg?raw";
 import usersThree from "@phosphor-icons/core/assets/bold/users-three-bold.svg?raw";
 
 const SVGS = {
@@ -45,6 +46,7 @@ const SVGS = {
   lock: lockSimple,
   passengers: usersThree,
   medal,
+  star,
 };
 
 // Returns inline-SVG markup wrapped in a sizing span. Color follows currentColor.

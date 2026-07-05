@@ -185,7 +185,8 @@ body {
 .goal-row.complete { opacity: 0.72; }
 .goal-row.win:not(.complete) { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
 .goal-head { display: flex; justify-content: space-between; gap: 0.75rem; align-items: baseline; }
-.goal-title { font-weight: 700; font-size: 0.86rem; }
+.goal-title { font-weight: 700; font-size: 0.86rem; display: inline-flex; align-items: center; gap: 0.3rem; }
+.goal-row.win .goal-star { color: var(--accent); }
 .goal-desc { font-size: 0.74rem; color: var(--ink-2); margin-top: 0.15rem; }
 .goal-status { font-size: 0.72rem; color: var(--ink-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .goal-status.done { color: var(--good); display: inline-flex; align-items: center; gap: 0.25rem; }

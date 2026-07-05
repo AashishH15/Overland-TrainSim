@@ -63,7 +63,7 @@ function openTycoonGoals(game) {
     return `
       <div class="goal-row ${complete ? "complete" : ""} ${g.win ? "win" : ""}">
         <div class="goal-head">
-          <span class="goal-title">${g.title}${g.win ? " ★" : ""}</span>
+          <span class="goal-title">${g.title}${g.win ? icon("star", "goal-star") : ""}</span>
           ${meta}
         </div>
         <div class="goal-desc">${g.desc}</div>
@@ -107,7 +107,7 @@ function openSurvivalBadges(game) {
       return `
         <div class="goal-row ${complete ? "complete" : ""} ${b.capstone ? "win" : ""}">
           <div class="goal-head">
-            <span class="goal-title">${b.title}${b.capstone ? " ★" : ""}</span>
+            <span class="goal-title">${b.title}${b.capstone ? icon("star", "goal-star") : ""}</span>
             ${badgeStatusLabel(b, s, unlocked)}
           </div>
           <div class="goal-desc">${b.desc}</div>
