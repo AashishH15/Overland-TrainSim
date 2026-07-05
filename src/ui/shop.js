@@ -1,11 +1,14 @@
 import { TIERS, fmtMoney, fmtInt, fmtSimDuration, GAME_MODES } from "../core/config.js";
 import { lostRatePerMin } from "../sim/simulation.js";
+import { formatSurvivalBest, recordSurvivalBest } from "../core/survivalBest.js";
+import { badgesSummary, evaluateSurvivalBadges } from "../core/survivalBadges.js";
 import { icon } from "./icons.js";
 
 export function openModePicker(game, onPick) {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
   backdrop.id = "mode-picker-backdrop";
+  const best = formatSurvivalBest();
 
   const cards = Object.values(GAME_MODES).map((m) => `
     <button type="button" class="mode-card" data-mode="${m.id}">
@@ -17,6 +20,7 @@ export function openModePicker(game, onPick) {
         </div>
       </div>
       <p class="mode-blurb">${m.blurb}</p>
+      ${m.id === "survival" && best ? `<div class="mode-best">Personal best · ${best}</div>` : ""}
       <span class="mode-cta">Play ${m.name}</span>
     </button>
   `).join("");
@@ -24,7 +28,7 @@ export function openModePicker(game, onPick) {
   backdrop.innerHTML = `
     <div class="modal mode-picker-modal">
       <h2>${icon("train")} Choose your run</h2>
-      <div class="sub">Same maps and tools — different pacing and win conditions.</div>
+      <div class="sub">Same maps and tools — Tycoon has win conditions; Survival has no ceiling, just your best time.</div>
       <div class="mode-cards">${cards}</div>
     </div>
   `;
@@ -106,6 +110,12 @@ export function openGameOver(game) {
 
 export function openNetworkCollapse(game) {
   const s = game.state;
+  evaluateSurvivalBadges(s);
+  const runSec = s.survivalTime || s.simTime;
+  const { isNew, bestSec, previousSec } = recordSurvivalBest(runSec);
+  const { done, total } = badgesSummary();
+  const bestLabel = fmtSimDuration(bestSec);
+
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
   backdrop.innerHTML = `
@@ -114,12 +124,17 @@ export function openNetworkCollapse(game) {
       <div class="sub" style="margin:0.6rem 0 0.4rem;">
         Too many riders gave up waiting. Your network couldn't keep pace with demand.
       </div>
-      <div class="stat" style="align-items:center; margin:1rem 0 1.2rem;">
-        <div class="v" style="font-size:1.6rem; color:var(--accent);">${fmtSimDuration(s.survivalTime || s.simTime)}</div>
+      <div class="stat" style="align-items:center; margin:1rem 0 0.5rem;">
+        <div class="v" style="font-size:1.6rem; color:var(--accent);">${fmtSimDuration(runSec)}</div>
         <div class="k">Survived</div>
       </div>
+      <div class="sub" style="font-size:0.82rem; margin-bottom:0.35rem;">
+        ${isNew
+    ? `<b style="color:var(--good);">New personal best!</b>${previousSec > 0 ? ` (was ${fmtSimDuration(previousSec)})` : ""}`
+    : `Personal best · <b>${bestLabel}</b> · ${fmtSimDuration(Math.max(0, bestSec - runSec))} short of your record`}
+      </div>
       <div class="sub" style="font-size:0.78rem; margin-bottom:1.2rem;">
-        Delivered ${fmtInt(s.totalDelivered)} passengers · Peak lost rate ${fmtInt(lostRatePerMin(s))}/min at collapse
+        Delivered ${fmtInt(s.totalDelivered)} passengers · Peak lost rate ${fmtInt(lostRatePerMin(s))}/min · ${fmtInt(done)}/${fmtInt(total)} badges unlocked
       </div>
       <button class="btn primary" data-restart>Try again</button>
     </div>

@@ -2,7 +2,9 @@ import { TIERS, TRACK_TYPES, fmtMoney, fmtInt, PRICING, getGameMode, getPressure
 import { incomePerMin, lostRatePerMin, breachProgress } from "../sim/simulation.js";
 import { on } from "../core/bus.js";
 import { icon } from "./icons.js";
-import { formatNextGoal, goalsSummary } from "./goals.js";
+import { formatNextGoal, goalsSummary, formatNextSurvivalBadge } from "./goals.js";
+import { badgesSummary } from "../core/survivalBadges.js";
+import { formatSurvivalBest } from "../core/survivalBest.js";
 
 export class Hud {
   constructor(game) {
@@ -21,11 +23,15 @@ export class Hud {
 
   syncModeUi() {
     const survival = !getGameMode(this.game.state).goals;
-    if (this.goalsStrip) this.goalsStrip.style.display = survival ? "none" : "";
+    if (this.goalsStrip) this.goalsStrip.style.display = "";
     const goalsBtn = document.getElementById("hud-goals");
-    if (goalsBtn) goalsBtn.hidden = survival;
+    if (goalsBtn) {
+      goalsBtn.hidden = false;
+      goalsBtn.title = survival ? "Survival badges" : "Milestones";
+    }
     const survStat = document.getElementById("hud-survival-stat");
     if (survStat) survStat.hidden = !survival;
+    this.refreshGoals();
   }
 
   buildTopbar() {
@@ -93,8 +99,25 @@ export class Hud {
   }
 
   refreshGoals() {
-    if (!this.goalsStrip || !getGameMode(this.game.state).goals) return;
+    if (!this.goalsStrip) return;
     const s = this.game.state;
+    const survival = !getGameMode(s).goals;
+
+    if (survival) {
+      const { done, total } = badgesSummary();
+      const best = formatSurvivalBest();
+      const next = formatNextSurvivalBadge(s);
+      const bestLine = best ? `<span class="goals-best">Best ${best}</span>` : "";
+      if (!next) {
+        this.goalsStrip.innerHTML = `${icon("medal")}<span>All badges unlocked</span>${bestLine}<span class="goals-count">${done}/${total}</span>`;
+        this.goalsStrip.classList.add("done");
+        return;
+      }
+      this.goalsStrip.classList.remove("done");
+      this.goalsStrip.innerHTML = `${icon("medal")}<span><b>Next:</b> ${next}</span>${bestLine}<span class="goals-count">${done}/${total}</span>`;
+      return;
+    }
+
     const { done, total } = goalsSummary(s);
     const next = formatNextGoal(s);
     if (!next) {

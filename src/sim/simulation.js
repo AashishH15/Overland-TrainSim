@@ -1,6 +1,7 @@
 import { TIERS, TRACK_TYPES, ECON, SIM, CROWDING, getGameMode, getPressureConfig, networkPressureEnabled, demandElasticity } from "../core/config.js";
 import { shortestPath, cachedDijkstra } from "../core/graph.js";
 import { effectiveDemand, platformCapacity } from "../core/economy.js";
+import { noteSurvivalLost, noteSurvivalOvercrowding, tickSurvivalRunStats } from "../core/survivalBadges.js";
 import {
   canBoardTrain,
   mergeWaiting,
@@ -105,6 +106,7 @@ function economyTick(state, dt) {
   }
 
   updateNetworkPressure(state, dt);
+  if (getGameMode(state).id === "survival") tickSurvivalRunStats(state);
 }
 
 function dropoutPass(state, mapKey, ms, dt) {
@@ -116,6 +118,7 @@ function dropoutPass(state, mapKey, ms, dt) {
     if (node.crowded) {
       if (!node.crowdedWarned) {
         node.crowdedWarned = true;
+        noteSurvivalOvercrowding(state);
         emit("toast", {
           msg: `${node.name} is overcrowded — riders are giving up`,
           kind: "bad",
@@ -137,6 +140,7 @@ function dropoutPass(state, mapKey, ms, dt) {
       if (lost > 0) {
         g.count -= lost;
         state.totalLost += lost;
+        noteSurvivalLost(state);
         if (networkPressureEnabled(state)) state.lostWindow.push([state.simTime, lost]);
       }
     }

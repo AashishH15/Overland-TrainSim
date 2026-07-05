@@ -17,6 +17,7 @@ import { Inspector } from "./ui/inspector.js";
 import { openShop as openShopModal, openGameOver, openNetworkCollapse, openIntro, openModePicker } from "./ui/shop.js";
 import { openGoals, openVictory, syncGoalProgress } from "./ui/goals.js";
 import { evaluateNewGoals } from "./core/goals.js";
+import { evaluateSurvivalBadges } from "./core/survivalBadges.js";
 import { icon } from "./ui/icons.js";
 import { isMobileExperience, tapSlack } from "./util/device.js";
 import { on, emit } from "./core/bus.js";
@@ -63,7 +64,10 @@ export class Game {
     syncGoalProgress(this.state);
     this.goalCheckAcc = 0;
     on("gameOver", () => openGameOver(this));
-    on("networkCollapse", () => openNetworkCollapse(this));
+    on("networkCollapse", () => {
+      openNetworkCollapse(this);
+      emit("goalsUpdated");
+    });
     on("goalsUpdated", () => this.hud.refreshGoals());
 
     this.raycaster = new THREE.Raycaster();
@@ -116,14 +120,22 @@ export class Game {
   openGoals() { openGoals(this); }
 
   processGoals() {
-    if (this.state.gameOver || !getGameMode(this.state).goals) return;
-    const newly = evaluateNewGoals(this.state);
-    if (!newly.length) return;
-    for (const g of newly) {
-      this.hud.toast(`Milestone: ${g.title}`, "good");
-      if (g.win && !this.state.victoryShown) {
-        this.state.victoryShown = true;
-        openVictory(this, g);
+    if (this.state.gameOver) return;
+    if (getGameMode(this.state).goals) {
+      const newly = evaluateNewGoals(this.state);
+      if (!newly.length) return;
+      for (const g of newly) {
+        this.hud.toast(`Milestone: ${g.title}`, "good");
+        if (g.win && !this.state.victoryShown) {
+          this.state.victoryShown = true;
+          openVictory(this, g);
+        }
+      }
+    } else {
+      const newly = evaluateSurvivalBadges(this.state);
+      if (!newly.length) return;
+      for (const b of newly) {
+        this.hud.toast(`Badge unlocked: ${b.title}`, "good");
       }
     }
     emit("goalsUpdated");

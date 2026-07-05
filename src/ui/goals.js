@@ -5,12 +5,48 @@ import {
   goalProgressRatio,
   goalsSummary,
   nextIncompleteGoal,
-  syncGoalProgress,
+  syncGoalProgress as syncTycoonGoalProgress,
 } from "../core/goals.js";
-import { fmtInt } from "../core/config.js";
+import {
+  SURVIVAL_BADGES,
+  badgesSummary,
+  evaluateSurvivalBadges,
+  loadUnlockedBadges,
+  nextLockedBadge,
+  badgeProgressRatio,
+  formatBadgeProgressShort,
+  formatSimMinutes,
+} from "../core/survivalBadges.js";
+import { formatSurvivalBest } from "../core/survivalBest.js";
+import { fmtInt, getGameMode } from "../core/config.js";
 import { icon } from "./icons.js";
 
+function badgeStatusLabel(badge, state, unlocked) {
+  if (unlocked.has(badge.id)) {
+    return `<span class="goal-status done">${icon("check")} Unlocked</span>`;
+  }
+  const ratio = badgeProgressRatio(badge, state);
+  if (ratio != null) {
+    const p = badge.progress(state);
+    let label;
+    if (p.target >= 3600) {
+      label = `${formatSimMinutes(p.current)} / ${formatSimMinutes(p.target)}`;
+    } else if (p.target >= 1000) {
+      label = `${fmtInt(Math.min(p.current, p.target))} / ${fmtInt(p.target)}`;
+    } else {
+      label = `${Math.min(p.current, p.target)} / ${p.target}`;
+    }
+    return `<span class="goal-status">${label}</span>`;
+  }
+  return `<span class="goal-status">In progress</span>`;
+}
+
 export function openGoals(game) {
+  if (getGameMode(game.state).goals) openTycoonGoals(game);
+  else openSurvivalBadges(game);
+}
+
+function openTycoonGoals(game) {
   const s = game.state;
   const { done, total } = goalsSummary(s);
   const doneSet = new Set(s.completedGoals);
@@ -41,7 +77,53 @@ export function openGoals(game) {
   backdrop.innerHTML = `
     <div class="modal goals-modal">
       <h2>${icon("medal")} Milestones</h2>
-      <div class="sub">${fmtInt(done)} of ${fmtInt(total)} complete · expand your network to climb the milestone ladder</div>
+      <div class="sub">${fmtInt(done)} of ${fmtInt(total)} complete · keep expanding to hit a win condition</div>
+      <div class="goals-list">${rows}</div>
+      <div class="modal-footer">
+        <button class="btn quiet" data-close>Close</button>
+      </div>
+    </div>
+  `;
+  document.getElementById("hud").appendChild(backdrop);
+  const close = () => backdrop.remove();
+  backdrop.addEventListener("click", (e) => { if (e.target === backdrop) close(); });
+  backdrop.querySelector("[data-close]").addEventListener("click", close);
+}
+
+function openSurvivalBadges(game) {
+  const s = game.state;
+  const { done, total } = badgesSummary();
+  const unlocked = loadUnlockedBadges();
+  const best = formatSurvivalBest();
+
+  const categories = ["Duration", "Skill", "Network"];
+  const rows = categories.map((cat) => {
+    const items = SURVIVAL_BADGES.filter((b) => b.category === cat).map((b) => {
+      const complete = unlocked.has(b.id);
+      const ratio = complete ? 1 : badgeProgressRatio(b, s);
+      const bar = ratio != null && !complete
+        ? `<div class="goal-bar"><div class="goal-bar-fill" style="width:${Math.round(ratio * 100)}%"></div></div>`
+        : "";
+      return `
+        <div class="goal-row ${complete ? "complete" : ""}">
+          <div class="goal-head">
+            <span class="goal-title">${b.title}</span>
+            ${badgeStatusLabel(b, s, unlocked)}
+          </div>
+          <div class="goal-desc">${b.desc}</div>
+          ${complete ? "" : bar}
+        </div>
+      `;
+    }).join("");
+    return `<div class="goal-category"><div class="goal-category-label">${cat}</div>${items}</div>`;
+  }).join("");
+
+  const backdrop = document.createElement("div");
+  backdrop.className = "modal-backdrop";
+  backdrop.innerHTML = `
+    <div class="modal goals-modal">
+      <h2>${icon("medal")} Survival badges</h2>
+      <div class="sub">${fmtInt(done)} of ${fmtInt(total)} badges unlocked${best ? ` · Personal best <b>${best}</b>` : ""}</div>
       <div class="goals-list">${rows}</div>
       <div class="modal-footer">
         <button class="btn quiet" data-close>Close</button>
@@ -77,10 +159,26 @@ export function openVictory(game, goal) {
 }
 
 export function formatNextGoal(state) {
+  if (!getGameMode(state).goals) return formatNextSurvivalBadge(state);
   const next = nextIncompleteGoal(state);
   if (!next) return null;
   const label = goalProgressLabel(next, state);
   return next.progress ? `${next.title} (${label})` : next.title;
 }
 
-export { syncGoalProgress, goalsSummary, nextIncompleteGoal };
+export function formatNextSurvivalBadge(state) {
+  const next = nextLockedBadge(state);
+  if (!next) return null;
+  return formatBadgeProgressShort(next, state);
+}
+
+export function syncGoalProgress(state) {
+  if (getGameMode(state).goals) syncTycoonGoalProgress(state);
+  else evaluateSurvivalBadges(state);
+}
+
+function syncGoalProgressFromCore(state) {
+  syncTycoonGoalProgress(state);
+}
+
+export { goalsSummary, nextIncompleteGoal };

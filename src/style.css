@@ -244,7 +244,19 @@ body {
 .mode-card h4 { font-size: 0.95rem; font-weight: 700; }
 .mode-tagline { font-size: 0.72rem; color: var(--ink-3); margin-top: 0.1rem; }
 .mode-blurb { font-size: 0.76rem; color: var(--ink-2); line-height: 1.45; margin: 0.55rem 0 0.75rem; flex: 1; }
-.mode-cta { font-size: 0.74rem; font-weight: 700; color: var(--accent); }
+.goals-strip .goals-best {
+  margin-left: 0.35rem; padding-left: 0.45rem; border-left: 1px solid var(--line);
+  color: var(--accent); font-variant-numeric: tabular-nums; flex-shrink: 0;
+}
+.goal-category { display: flex; flex-direction: column; gap: 0.55rem; }
+.goal-category-label {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-3); margin-top: 0.15rem;
+}
+.mode-best {
+  font-size: 0.74rem; color: var(--accent); font-weight: 600; margin-bottom: 0.55rem;
+  font-variant-numeric: tabular-nums;
+}
 
 /* ---------- Onboarding ---------- */
 .steps { display: flex; flex-direction: column; gap: 0.9rem; margin: 0.4rem 0 0.6rem; }

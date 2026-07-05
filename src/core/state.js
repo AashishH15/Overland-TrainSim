@@ -70,6 +70,12 @@ export function freshState(gameMode = "tycoon") {
     breachTimer: 0, // sustained lost-rate breach accumulator (sim-seconds)
     collapseReason: null, // null | "network"
     survivalTime: 0, // sim-seconds survived at collapse (score)
+    survivalRun: gameMode === "survival" ? {
+      peakTrains: 0,
+      hadOvercrowding: false,
+      lastLostAt: 0,
+      maxLostFreeStreak: 0,
+    } : null,
   };
 }
 
@@ -114,6 +120,14 @@ export function loadState() {
     if (s.breachTimer == null) s.breachTimer = 0;
     if (s.collapseReason == null) s.collapseReason = null;
     if (s.survivalTime == null) s.survivalTime = 0;
+    if (s.gameMode === "survival" && !s.survivalRun) {
+      s.survivalRun = {
+        peakTrains: Object.keys(s.trains ?? {}).length,
+        hadOvercrowding: false,
+        lastLostAt: 0,
+        maxLostFreeStreak: 0,
+      };
+    }
     for (const mk of ["usa", "nyc"]) {
       if (s.maps[mk].fareMult == null) s.maps[mk].fareMult = 1.0;
     }
