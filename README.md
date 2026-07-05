@@ -59,13 +59,25 @@ Progress autosaves to localStorage; "New Game" resets.
 
 ## Deployment
 
-Pushes to `main` build and push `dist/` to the `gh-pages` branch via
+**Live site:** https://aashishh15.github.io/3DTrainSim/
+
+Pushes to `main` build and push `dist/` to the **`gh-pages` branch** via
 `.github/workflows/deploy.yml` (Vite `base` is set to `/3DTrainSim/` in CI).
 
-In repo **Settings → Pages**, set **Source** to **Deploy from a branch**,
-branch **`gh-pages`**, folder **`/ (root)`**. Do not use the GitHub Actions
-Pages source unless you also allow `main` under **Settings → Environments →
-github-pages → Deployment branches**.
+### Required GitHub setting (fixes the red ❌ deploy)
+
+If Actions shows **`pages-build-deployment`** / **`deploy-pages@v5`** failing with
+“Deployment failed, try again later” or environment protection errors, that is a
+**separate** GitHub-managed workflow — not the one in this repo. The real deploy
+already succeeded on `gh-pages`.
+
+1. Open **Settings → Pages → Build and deployment**
+2. Set **Source** to **Deploy from a branch** (not “GitHub Actions”)
+3. Branch **`gh-pages`**, folder **`/ (root)`**
+4. Save — the failing `pages-build-deployment` runs stop mattering
+
+You can confirm deploy worked: **Actions → Deploy to GitHub Pages** should be green,
+and the latest commit on the **`gh-pages`** branch should match your `main` push.
 
 ## Tech
 
