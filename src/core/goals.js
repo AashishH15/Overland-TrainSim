@@ -105,10 +105,10 @@ export const GOALS = [
   {
     id: "cash_2m",
     title: "In the black",
-    desc: "Reach $2M cash",
+    desc: "Reach $5M cash",
     progressFormat: "money",
-    progress: (s) => ({ current: Math.max(0, s.cash), target: 2_000_000 }),
-    done: (s) => s.cash >= 2_000_000,
+    progress: (s) => ({ current: Math.max(0, s.cash), target: 5_000_000 }),
+    done: (s) => s.cash >= 5_000_000,
   },
   {
     id: "usa_10",
