@@ -20,6 +20,7 @@ import {
 import { formatSurvivalBest } from "../core/survivalBest.js";
 import { fmtInt, getGameMode } from "../core/config.js";
 import { icon } from "./icons.js";
+import { shareModalActions, bindShareAction } from "./share.js";
 
 function badgeStatusLabel(badge, state, unlocked) {
   if (unlocked.has(badge.id)) {
@@ -149,12 +150,14 @@ export function openVictory(game, goal) {
       <div class="sub" style="margin:0.2rem 0 1.1rem;">
         ${goal.desc}. You delivered ${fmtInt(s.totalDelivered)} passengers — the sandbox stays open if you want to keep building.
       </div>
-      <div class="modal-footer" style="justify-content:center;">
+      <div class="modal-footer" style="justify-content:center; flex-wrap:wrap;">
+        ${shareModalActions()}
         <button class="btn primary" data-close>Keep playing</button>
       </div>
     </div>
   `;
   document.getElementById("hud").appendChild(backdrop);
+  bindShareAction(backdrop, game, { headline: goal.title });
   backdrop.querySelector("[data-close]").addEventListener("click", () => backdrop.remove());
 }
 

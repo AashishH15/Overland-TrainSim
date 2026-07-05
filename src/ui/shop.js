@@ -3,6 +3,7 @@ import { lostRatePerMin, displaySimTime } from "../sim/simulation.js";
 import { formatSurvivalBest, recordSurvivalBest } from "../core/survivalBest.js";
 import { badgesSummary, evaluateSurvivalBadges } from "../core/survivalBadges.js";
 import { icon } from "./icons.js";
+import { shareModalActions, bindShareAction } from "./share.js";
 
 export function openModePicker(game, onPick) {
   const backdrop = document.createElement("div");
@@ -98,10 +99,14 @@ export function openGameOver(game) {
         Your rail empire ran out of money. You delivered ${fmtInt(game.state.totalDelivered)} passengers
         and earned ${fmtMoney(game.state.totalRevenue)} in fares.
       </div>
-      <button class="btn primary" data-restart>Start a new empire</button>
+      <div class="modal-footer" style="justify-content:center; flex-wrap:wrap;">
+        ${shareModalActions(true)}
+        <button class="btn quiet" data-restart>Start a new empire</button>
+      </div>
     </div>
   `;
   document.getElementById("hud").appendChild(backdrop);
+  bindShareAction(backdrop, game, { headline: "Bankrupt" });
   backdrop.querySelector("[data-restart]").addEventListener("click", () => {
     backdrop.remove();
     game.newGame();
@@ -136,10 +141,14 @@ export function openNetworkCollapse(game) {
       <div class="sub" style="font-size:0.78rem; margin-bottom:1.2rem;">
         Delivered ${fmtInt(s.totalDelivered)} passengers · Peak lost rate ${fmtInt(lostRatePerMin(s))}/min · ${fmtInt(done)}/${fmtInt(total)} badges unlocked
       </div>
-      <button class="btn primary" data-restart>Try again</button>
+      <div class="modal-footer" style="justify-content:center; flex-wrap:wrap;">
+        ${shareModalActions(true)}
+        <button class="btn quiet" data-restart>Try again</button>
+      </div>
     </div>
   `;
   document.getElementById("hud").appendChild(backdrop);
+  bindShareAction(backdrop, game, { headline: "Network collapsed", elapsedSec: runSec });
   backdrop.querySelector("[data-restart]").addEventListener("click", () => {
     backdrop.remove();
     game.newGame();
