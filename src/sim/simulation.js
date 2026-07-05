@@ -1,6 +1,6 @@
-import { TIERS, TRACK_TYPES, ECON, SIM } from "../core/config.js";
+import { TIERS, TRACK_TYPES, ECON, SIM, CROWDING, demandElasticity } from "../core/config.js";
 import { shortestPath, cachedDijkstra } from "../core/graph.js";
-import { effectiveDemand } from "../core/economy.js";
+import { effectiveDemand, platformCapacity } from "../core/economy.js";
 import {
   canBoardTrain,
   mergeWaiting,
@@ -36,6 +36,7 @@ function economyTick(state, dt) {
 
   for (const mapKey of ["usa", "nyc"]) {
     const ms = state.maps[mapKey];
+    dropoutPass(state, mapKey, ms, dt);
 
     // Passenger spawning at stations that can reach at least one other station.
     for (const node of Object.values(ms.nodes)) {
@@ -43,10 +44,9 @@ function economyTick(state, dt) {
       const reachable = serviceReachableStations(state, mapKey, node.id);
       if (reachable.length === 0) continue;
 
-      const waitingCount = node.waiting.reduce((s, g) => s + g.count, 0);
-      if (waitingCount >= SIM.maxWaitingPerStop) continue;
-
-      node.spawnAcc += effectiveDemand(node, state) * SIM.demandScale[mapKey] * df * dt;
+      node.spawnAcc += effectiveDemand(node, state)
+        * demandElasticity(ms.fareMult)
+        * SIM.demandScale[mapKey] * df * dt;
       if (node.spawnAcc < 1) continue;
       const spawn = Math.floor(node.spawnAcc);
       node.spawnAcc -= spawn;
@@ -67,8 +67,12 @@ function economyTick(state, dt) {
       }
       const dest = reachable[destIdx];
       const existing = node.waiting.find((g) => g.dest === dest.id);
-      if (existing) existing.count += spawn;
-      else node.waiting.push({ count: spawn, dest: dest.id, fareDist: dest.dist });
+      if (existing) {
+        existing.count += spawn;
+        existing.since = Math.min(existing.since ?? state.simTime, state.simTime);
+      } else {
+        node.waiting.push({ count: spawn, dest: dest.id, fareDist: dest.dist, since: state.simTime });
+      }
     }
 
     // Track maintenance.
@@ -96,6 +100,34 @@ function economyTick(state, dt) {
     }
   } else {
     state.debtTimer = 0;
+  }
+}
+
+function dropoutPass(state, mapKey, ms, dt) {
+  for (const node of Object.values(ms.nodes)) {
+    if (!node.station) continue;
+    const waitingCount = node.waiting.reduce((s, g) => s + g.count, 0);
+    const capacity = platformCapacity(mapKey, node);
+    const wasCrowded = node.crowded;
+    node.crowded = waitingCount > capacity;
+    if (node.crowded && !wasCrowded) {
+      emit("toast", { msg: `${node.name} is overcrowded — riders are giving up`, kind: "bad" });
+    }
+    if (!node.crowded) continue;
+    const overflow = waitingCount / Math.max(1, capacity);
+    for (const g of node.waiting) {
+      const since = g.since ?? state.simTime;
+      if (state.simTime - since < CROWDING.patienceSec) continue;
+      const lost = Math.min(
+        g.count,
+        Math.round(g.count * CROWDING.dropoutRatePerSec * Math.min(2, overflow) * dt)
+      );
+      if (lost > 0) {
+        g.count -= lost;
+        state.totalLost += lost;
+      }
+    }
+    node.waiting = node.waiting.filter((g) => g.count > 0);
   }
 }
 
@@ -207,12 +239,12 @@ function handleStop(state, train, nodeId) {
   for (const g of train.passengers) {
     if (g.dest === nodeId) {
       delivered += g.count;
-      revenue += g.count * g.fareDist * fareFor(mapKey) * tier.fareMult;
+      revenue += g.count * g.fareDist * fareFor(mapKey) * tier.fareMult * ms.fareMult;
       continue;
     }
     // Transfer: get off at the best stop this train serves toward their destination.
     if (shouldTransferAtStop(state, mapKey, train, nodeId, g.dest)) {
-      mergeWaiting(node, g.count, g.dest, g.fareDist);
+      mergeWaiting(node, g.count, g.dest, g.fareDist, state.simTime);
       continue;
     }
     staying.push(g);

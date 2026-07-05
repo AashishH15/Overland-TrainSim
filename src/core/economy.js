@@ -1,4 +1,4 @@
-import { TRACK_TYPES, ECON, WATER_COST_MULT, unlockCost, GROWTH } from "./config.js";
+import { TRACK_TYPES, ECON, WATER_COST_MULT, unlockCost, GROWTH, CROWDING } from "./config.js";
 
 export function trackCost(mapKey, type, length, waterFrac = 0) {
   const base = TRACK_TYPES[type].costPerUnit[mapKey] * length;
@@ -54,4 +54,17 @@ export function formatDemandStat(node, state) {
   if (servicePct > 0) parts.push(`+${servicePct}% ridership`);
   if (parts.length === 1) return `${eff.toFixed(1)} pts`;
   return `${eff.toFixed(1)} pts (${parts.join(", ")})`;
+}
+
+export function platformCapacity(mapKey, node) {
+  return Math.round(CROWDING.platformBase[mapKey] + node.demand * CROWDING.platformPerDemand);
+}
+
+export function formatCrowdingStat(mapKey, node) {
+  const waiting = node.waiting.reduce((s, g) => s + g.count, 0);
+  const cap = platformCapacity(mapKey, node);
+  const pct = cap > 0 ? Math.round((waiting / cap) * 100) : 0;
+  if (node.crowded) return `${waiting} / ${cap} · overcrowded, riders leaving`;
+  if (pct >= 70) return `${waiting} / ${cap} · filling up`;
+  return `${waiting} / ${cap}`;
 }

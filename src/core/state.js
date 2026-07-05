@@ -50,6 +50,7 @@ export function freshState() {
     cash: ECON.startCash,
     totalDelivered: 0,
     totalRevenue: 0,
+    totalLost: 0,
     simTime: 0,
     speed: 1,
     debtTimer: 0,
@@ -58,8 +59,8 @@ export function freshState() {
     completedGoals: [],
     currentMap: "usa",
     maps: {
-      usa: { nodes: usaNodes, edges: {}, pathVersion: 0 },
-      nyc: { nodes: nycNodes, edges: {}, pathVersion: 0 },
+      usa: { nodes: usaNodes, edges: {}, pathVersion: 0, fareMult: 1.0 },
+      nyc: { nodes: nycNodes, edges: {}, pathVersion: 0, fareMult: 1.0 },
     },
     trains: {},
     nextTrainId: 1,
@@ -102,6 +103,10 @@ export function loadState() {
     if (s?.version !== 1) return null;
     if (!s.completedGoals) s.completedGoals = [];
     if (s.victoryShown == null) s.victoryShown = false;
+    if (s.totalLost == null) s.totalLost = 0;
+    for (const mk of ["usa", "nyc"]) {
+      if (s.maps[mk].fareMult == null) s.maps[mk].fareMult = 1.0;
+    }
     // Refresh static node positions/demand in case data was retuned.
     const fresh = freshState();
     for (const mk of ["usa", "nyc"]) {

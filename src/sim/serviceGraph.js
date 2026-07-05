@@ -184,8 +184,12 @@ export function shouldTransferAtStop(state, mapKey, train, stopId, dest) {
 }
 
 /** Merge a waiting group into a node's queue. */
-export function mergeWaiting(node, count, dest, fareDist) {
+export function mergeWaiting(node, count, dest, fareDist, since) {
   const existing = node.waiting.find((g) => g.dest === dest);
-  if (existing) existing.count += count;
-  else node.waiting.push({ count, dest, fareDist });
+  if (existing) {
+    existing.count += count;
+    existing.since = Math.min(existing.since ?? since, since);
+  } else {
+    node.waiting.push({ count, dest, fareDist, since });
+  }
 }

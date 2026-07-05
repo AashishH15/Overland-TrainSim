@@ -93,7 +93,6 @@ export const unlockCost = (pop) => Math.round((30000 + pop * 22000) / 1000) * 10
 export const SIM = {
   tickSeconds: 0.5,          // passenger/economy tick length in sim-seconds
   demandScale: { usa: 0.15, nyc: 0.30 }, // passengers per demand-point per sim-second
-  maxWaitingPerStop: 400,
 };
 
 // City/ridership growth: demand rises gently over time, and faster at
@@ -103,6 +102,23 @@ export const GROWTH = {
   perThousandServed: 0.05, // +5% extra demand per 1,000 passengers delivered at this stop
   maxMultiplier: 3.5,      // soft cap so no station runs away forever
 };
+
+export const CROWDING = {
+  platformBase: { usa: 40, nyc: 25 },
+  platformPerDemand: 3,
+  patienceSec: 90,
+  dropoutRatePerSec: 0.02,
+};
+
+export const PRICING = {
+  minMult: 0.5,
+  maxMult: 2.0,
+  elasticity: 0.6,
+};
+
+export function demandElasticity(fareMult) {
+  return Math.max(0.3, 1 - (fareMult - 1) * PRICING.elasticity);
+}
 
 export const fmtMoney = (v) => {
   const sign = v < 0 ? "-" : "";
