@@ -85,8 +85,8 @@ export const ECON = {
   dwellTime: 2.2,                      // seconds a train waits at each stop
 };
 
-// Nodes with rank <= this are buildable immediately on the USA map; the rest
-// must be unlocked with a fee that scales with metro size.
+// Nodes with rank <= this are in your starter network on the USA map; expanding
+// into other metros costs a fee that scales with metro size.
 export const USA_FREE_RANKS = 12;
 export const unlockCost = (pop) => Math.round((30000 + pop * 22000) / 1000) * 1000;
 

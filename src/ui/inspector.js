@@ -44,7 +44,12 @@ export class Inspector {
     this.current = { kind: "node", id: nodeId };
 
     const waiting = node.waiting.reduce((a, x) => a + x.count, 0);
-    const status = node.station ? "Station built" : node.unlocked ? "No station yet" : "Locked";
+    const onNetwork = node.unlocked || node.station;
+    const status = node.station
+      ? "Station built"
+      : onNetwork
+        ? "On your network · no station yet"
+        : "Outside your network";
     const rows = [
       ["Status", status],
       ["Demand", `${node.demand} pts`],
@@ -54,8 +59,11 @@ export class Inspector {
     ].filter(Boolean);
 
     const actions = [];
+    const expansionNote = mapKey === "usa" && !onNetwork
+      ? `<div class="sub">Expand your network here to reach this metro — counts toward milestones.</div>`
+      : "";
     if (!node.unlocked) {
-      actions.push(`<button class="btn primary" data-act="unlock">${icon("lock")} Unlock for ${fmtMoney(nodeUnlockCost(node))}</button>`);
+      actions.push(`<button class="btn primary" data-act="unlock">${icon("pin")} Expand network · ${fmtMoney(nodeUnlockCost(node))}</button>`);
     } else if (!node.station) {
       actions.push(`<button class="btn primary" data-act="station">${icon("station")} Build station for ${fmtMoney(stationCost(mapKey, node))}</button>`);
     }
@@ -66,6 +74,7 @@ export class Inspector {
     this.open(`
       <h3>${node.name}</h3>
       <div class="sub">${mapKey === "usa" ? "Metro area" : "NYC stop"}</div>
+      ${expansionNote}
       ${rows.map(([k, v]) => `<div class="row"><span class="k">${k}</span><span>${v}</span></div>`).join("")}
       <div class="actions">${actions.join("")}</div>
     `);

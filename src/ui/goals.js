@@ -41,7 +41,7 @@ export function openGoals(game) {
   backdrop.innerHTML = `
     <div class="modal goals-modal">
       <h2>${icon("medal")} Milestones</h2>
-      <div class="sub">${fmtInt(done)} of ${fmtInt(total)} complete · keep expanding to hit a win condition</div>
+      <div class="sub">${fmtInt(done)} of ${fmtInt(total)} complete · expand your network to climb the milestone ladder</div>
       <div class="goals-list">${rows}</div>
       <div class="modal-footer">
         <button class="btn quiet" data-close>Close</button>

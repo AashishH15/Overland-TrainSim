@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { TIERS, TRACK_TYPES, ECON, fmtMoney } from "./core/config.js";
+import { TIERS, TRACK_TYPES, ECON, USA_FREE_RANKS, fmtMoney } from "./core/config.js";
 import { freshState, loadState, saveState, clearSave, makeEdge, removeEdge } from "./core/state.js";
 import { edgeKey, nodeDist } from "./core/graph.js";
 import { trackCost, stationCost, nodeUnlockCost, upgradeCost, bulldozeRefund } from "./core/economy.js";
@@ -263,8 +263,9 @@ export class Game {
     if (!this.spend(cost)) return;
     node.unlocked = true;
     this.renderers[this.state.currentMap].nodes.rebuildNode(node);
-    emit("toast", { msg: `${node.name} unlocked!`, kind: "good" });
+    emit("toast", { msg: `Network expanded to ${node.name}!`, kind: "good" });
     this.inspector.showNode(nodeId);
+    this.processGoals();
   }
 
   buildStation(nodeId) {
@@ -277,7 +278,7 @@ export class Game {
       if (!this.spend(total)) return;
       node.unlocked = true;
       node.station = true;
-      emit("toast", { msg: `${node.name}: unlocked + station built (${fmtMoney(total)})`, kind: "good" });
+      emit("toast", { msg: `${node.name} joined your network + station built (${fmtMoney(total)})`, kind: "good" });
     } else {
       const cost = stationCost(mapKey, node);
       if (!this.spend(cost)) return;
@@ -659,6 +660,14 @@ export class Game {
     if (unrouted) {
       return `${icon("route")} Train #${unrouted.num} needs a route — tap its chip`;
     }
+    if (this.state.currentMap === "usa") {
+      const usa = this.state.maps.usa;
+      const onNetwork = Object.values(usa.nodes).filter((n) => n.station).length;
+      const expanded = Object.values(usa.nodes).some((n) => n.station && n.rank > USA_FREE_RANKS);
+      if (onNetwork >= 2 && edges > 0 && !expanded) {
+        return `${icon("pin")} <b>Expand your network</b> — build at a gray metro to chase milestones`;
+      }
+    }
     return null;
   }
 
@@ -679,7 +688,10 @@ export class Game {
         next ?? `${icon("select")} Click any <b>stop</b>, <b>track</b> or <b>train</b> to inspect${touchTip}`
       );
     } else if (mode === "station") {
-      this.bindHintActions(`${icon("station")} Tap a stop to build a station`);
+      const expandTip = this.state.currentMap === "usa"
+        ? " · gray metros <b>expand your network</b>"
+        : "";
+      this.bindHintActions(`${icon("station")} Tap a stop to build a station${expandTip}`);
     } else if (mode.startsWith("track")) {
       const type = +mode.slice(5);
       if (!this.trackStart) {

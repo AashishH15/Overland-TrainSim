@@ -73,7 +73,7 @@ export function openIntro(game, { firstRun = false } = {}) {
       <div class="steps">
         <div class="step">${icon("station")}
           <div><h4>1 · Build stations</h4>
-          <p>Pick the Station tool and click two stops. Bigger cities cost more but attract far more passengers.</p></div>
+          <p>You start in 12 major US metros. Pick the Station tool and click stops to build — gray metros let you <b>expand your network</b> into new cities as you grow.</p></div>
         </div>
         <div class="step">${icon("route")}
           <div><h4>2 · Lay track between them</h4>
@@ -85,7 +85,7 @@ export function openIntro(game, { firstRun = false } = {}) {
         </div>
         <div class="step">${icon("coins")}
           <div><h4>4 · Reinvest the profit</h4>
-          <p>Expand to new cities, upgrade track, and unlock faster trains. Hit milestones for progress — connect all 50 US metros or reach $5M to win. Stay above -$250k or you go bankrupt.</p></div>
+          <p><b>Expand your network</b> across the US, upgrade track, and add faster trains. Milestones track every step — reach all 50 metros or $5M to win. Stay above -$250k or you go bankrupt.</p></div>
         </div>
         <div class="step">${icon("medal")}
           <div><h4>5 · Track your milestones</h4>

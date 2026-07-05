@@ -1,4 +1,4 @@
-import { fmtMoney, fmtInt } from "./config.js";
+import { fmtMoney, fmtInt, USA_FREE_RANKS } from "./config.js";
 import { USA_METROS } from "../data/usaMetros.js";
 import { NYC_STOPS } from "../data/nycMap.js";
 
@@ -25,6 +25,10 @@ export function ownsTier(state, tier) {
   return Object.values(state.trains).some((t) => t.tier === tier);
 }
 
+export function expandedUsaMetros(state) {
+  return Object.values(state.maps.usa.nodes).filter((n) => n.station && n.rank > USA_FREE_RANKS).length;
+}
+
 /** Milestones ordered for progression UI. `win` goals trigger the victory screen once. */
 export const GOALS = [
   {
@@ -46,6 +50,12 @@ export const GOALS = [
     done: hasRoutedTrain,
   },
   {
+    id: "expand_first",
+    title: "Expand your network",
+    desc: "Open a station in a new US metro beyond your starter region",
+    done: (s) => expandedUsaMetros(s) >= 1,
+  },
+  {
     id: "passengers_1k",
     title: "Getting busy",
     desc: "Deliver 1,000 passengers",
@@ -62,7 +72,7 @@ export const GOALS = [
   {
     id: "usa_10",
     title: "Regional operator",
-    desc: "Build stations at 10 US metros",
+    desc: "Expand your network to 10 US metros",
     progress: (s) => ({ current: stationsOnMap(s.maps.usa), target: 10 }),
     done: (s) => stationsOnMap(s.maps.usa) >= 10,
   },
@@ -83,7 +93,7 @@ export const GOALS = [
   {
     id: "usa_25",
     title: "Coast to coast",
-    desc: "Build stations at 25 US metros",
+    desc: "Expand your network to 25 US metros",
     progress: (s) => ({ current: stationsOnMap(s.maps.usa), target: 25 }),
     done: (s) => stationsOnMap(s.maps.usa) >= 25,
   },
@@ -117,7 +127,7 @@ export const GOALS = [
   {
     id: "usa_50",
     title: "National network",
-    desc: "Connect all 50 US metros with stations",
+    desc: "Expand coast to coast — stations at all 50 US metros",
     win: true,
     progress: (s) => ({ current: stationsOnMap(s.maps.usa), target: USA_METRO_COUNT }),
     done: (s) => stationsOnMap(s.maps.usa) >= USA_METRO_COUNT,

@@ -22,9 +22,10 @@ Then open the printed local URL (default http://localhost:5173).
 
 ## How to play
 
-1. **Build stations:** pick the Station tool, click a stop node. On the USA map
-   only the top 12 metros start unlocked; locked metros are unlocked (fee) with
-   the same click. On the NYC map every landmark is available.
+1. **Build stations:** pick the Station tool and click a stop. On the USA map you
+   start in 12 major metros — click gray stops to **expand your network** into
+   new cities (cost scales with metro size). On the NYC map every landmark is
+   available from the start.
 2. **Lay track:** pick a track type and click station-to-station. Water
    crossings in NYC cost x2.6 (bridges are rendered automatically).
    - Standard Track: cheap, Tier I trains only
@@ -36,9 +37,9 @@ Then open the printed local URL (default http://localhost:5173).
    trains heading to their destination, and pay fares scaled by distance and
    train tier. Track maintenance and train operating costs drain cash - stay
    above -$250k or you go bankrupt.
-5. **Milestones** track your progress (medal button in the HUD). Win by
-   connecting all 50 US metros or reaching **$5M cash**. You can keep playing
-   after a win.
+5. **Milestones** track your progress (medal button in the HUD). Expand your
+   network, grow revenue, and hit win conditions — all **50 US metros** or
+   **$5M cash**. You can keep playing after a win.
 6. Track can be **upgraded** in place (click it in Select mode) and demolished
    for a 25% refund. Trains can be sold for 50%.
 
