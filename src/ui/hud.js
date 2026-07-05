@@ -14,7 +14,7 @@ export class Hud {
     this.buildHintbar();
     this.buildToasts();
     this.buildFleet();
-    on("toast", (t) => this.toast(t.msg, t.kind));
+    on("toast", (t) => this.toast(t.msg, t.kind, t.key));
     setInterval(() => this.refresh(), 250);
     this.syncModeUi();
   }
@@ -164,15 +164,21 @@ export class Hud {
     this.root.appendChild(this.toasts);
   }
 
-  toast(msg, kind = "") {
+  toast(msg, kind = "", key = "") {
+    if (key) {
+      for (const existing of this.toasts.children) {
+        if (existing.dataset.toastKey === key) return;
+      }
+    }
     const t = document.createElement("div");
     t.className = `toast ${kind}`;
+    if (key) t.dataset.toastKey = key;
     const glyph = kind === "good" ? "check" : kind === "bad" ? "close" : "info";
     t.innerHTML = `${icon(glyph)}<span></span>`;
     t.lastChild.textContent = msg;
     this.toasts.appendChild(t);
     setTimeout(() => t.remove(), 3400);
-    while (this.toasts.children.length > 4) this.toasts.firstChild.remove();
+    while (this.toasts.children.length > 3) this.toasts.firstChild.remove();
   }
 
   buildFleet() {

@@ -112,10 +112,18 @@ function dropoutPass(state, mapKey, ms, dt) {
     if (!node.station) continue;
     const waitingCount = node.waiting.reduce((s, g) => s + g.count, 0);
     const capacity = platformCapacity(mapKey, node, state);
-    const wasCrowded = node.crowded;
     node.crowded = waitingCount > capacity;
-    if (node.crowded && !wasCrowded) {
-      emit("toast", { msg: `${node.name} is overcrowded — riders are giving up`, kind: "bad" });
+    if (node.crowded) {
+      if (!node.crowdedWarned) {
+        node.crowdedWarned = true;
+        emit("toast", {
+          msg: `${node.name} is overcrowded — riders are giving up`,
+          kind: "bad",
+          key: `crowded:${mapKey}:${node.id}`,
+        });
+      }
+    } else {
+      node.crowdedWarned = false;
     }
     if (!node.crowded) continue;
     const overflow = waitingCount / Math.max(1, capacity);
@@ -314,7 +322,11 @@ function updateNetworkPressure(state, dt) {
     state.breachTimer += dt;
     const warnAt = collapseGraceSec * 0.5;
     if (prev < warnAt && state.breachTimer >= warnAt) {
-      emit("toast", { msg: "Riders leaving faster than you can recover — fix overcrowding", kind: "bad" });
+      emit("toast", {
+        msg: "Riders leaving faster than you can recover — fix overcrowding",
+        kind: "bad",
+        key: "network-breach-warn",
+      });
     }
     if (state.breachTimer >= collapseGraceSec) {
       state.gameOver = true;
