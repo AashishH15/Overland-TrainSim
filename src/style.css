@@ -9,8 +9,10 @@
   --ink: #edf1f6;
   --ink-2: #97a3b4;
   --ink-3: #6b7788;
-  --accent: #f5a83c;
-  --accent-ink: #241503;
+  /* HUD accent — Amtrak-inspired rail blue (UI only; track/map colors unchanged). */
+  --accent: #2a6db5;
+  --accent-ink: #f0f4fa;
+  --accent-border: #6eb4f0; /* lighter outline on dark panels */
   --good: #58c98b;
   --bad: #e06c6c;
   --r-sm: 8px;
@@ -71,7 +73,7 @@ body {
 .btn.active { background: var(--accent); color: var(--accent-ink); }
 .btn.small { padding: 0.35rem 0.55rem; font-size: 0.78rem; }
 .btn.primary { background: var(--accent); color: var(--accent-ink); }
-.btn.primary:hover { background: #ffbd5e; }
+.btn.primary:hover { background: #3a7ec9; }
 .btn.quiet { background: transparent; border-color: var(--line); }
 .btn.quiet:hover { background: var(--panel-2); }
 .btn.danger { color: var(--bad); }
@@ -133,7 +135,7 @@ body {
 }
 .github-star:hover {
   background: var(--panel-2);
-  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  border-color: color-mix(in srgb, var(--accent-border) 35%, var(--line));
 }
 .github-star:focus-visible {
   outline: 2px solid var(--accent);
@@ -152,7 +154,7 @@ body {
   color: var(--ink-2);
   font-variant-numeric: tabular-nums;
 }
-.github-star-icon { color: var(--accent); width: 0.95em; height: 0.95em; }
+.github-star-icon { color: #e8b829; width: 0.95em; height: 0.95em; }
 
 /* ---------- Toolbar ---------- */
 .toolbar {
@@ -227,10 +229,13 @@ body {
   padding: 0.65rem 0.75rem;
 }
 .goal-row.complete { opacity: 0.72; }
-.goal-row.win:not(.complete) { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.goal-row.win:not(.complete) {
+  border: 1.5px solid var(--accent-border);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-border) 28%, transparent);
+}
 .goal-head { display: flex; justify-content: space-between; gap: 0.75rem; align-items: baseline; }
 .goal-title { font-weight: 700; font-size: 0.86rem; display: inline-flex; align-items: center; gap: 0.3rem; }
-.goal-row.win .goal-star { color: var(--accent); }
+.goal-row.win .goal-star { color: var(--accent-border); }
 .goal-desc { font-size: 0.74rem; color: var(--ink-2); margin-top: 0.15rem; }
 .goal-status { font-size: 0.72rem; color: var(--ink-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .goal-status.done { color: var(--good); display: inline-flex; align-items: center; gap: 0.25rem; }
