@@ -144,6 +144,41 @@ body {
 }
 .inspector .train-pick-meta { margin-left: auto; font-size: 0.72rem; color: var(--ink-3); font-weight: 500; font-variant-numeric: tabular-nums; }
 .inspector .train-pick-empty { font-size: 0.78rem; color: var(--ink-3); padding: 0.2rem 0; }
+.goals-strip {
+  position: absolute; top: 4.35rem; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 0.45rem;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 999px;
+  padding: 0.35rem 0.85rem; font-size: 0.74rem; color: var(--ink-2);
+  box-shadow: var(--shadow); cursor: pointer; max-width: calc(100vw - 1.5rem);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.goals-strip:hover { background: var(--panel-2); }
+.goals-strip b { color: var(--accent); font-weight: 600; }
+.goals-strip .goals-count {
+  margin-left: 0.35rem; padding-left: 0.45rem; border-left: 1px solid var(--line);
+  color: var(--ink-3); font-variant-numeric: tabular-nums; flex-shrink: 0;
+}
+.goals-strip.done { color: var(--good); }
+.goals-strip.done b { color: var(--good); }
+
+.goals-modal { width: min(34rem, 92vw); }
+.goals-list { display: flex; flex-direction: column; gap: 0.55rem; margin: 0.75rem 0 0.2rem; max-height: 52vh; overflow-y: auto; }
+.goal-row {
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-md);
+  padding: 0.65rem 0.75rem;
+}
+.goal-row.complete { opacity: 0.72; }
+.goal-row.win:not(.complete) { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.goal-head { display: flex; justify-content: space-between; gap: 0.75rem; align-items: baseline; }
+.goal-title { font-weight: 700; font-size: 0.86rem; }
+.goal-desc { font-size: 0.74rem; color: var(--ink-2); margin-top: 0.15rem; }
+.goal-status { font-size: 0.72rem; color: var(--ink-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.goal-status.done { color: var(--good); display: inline-flex; align-items: center; gap: 0.25rem; }
+.goal-bar {
+  margin-top: 0.45rem; height: 0.28rem; background: var(--panel-3); border-radius: 999px; overflow: hidden;
+}
+.goal-bar-fill { height: 100%; background: var(--accent); border-radius: 999px; }
+
 .inspector .close {
   position: absolute; top: 0.6rem; right: 0.6rem;
   background: none; border: none; color: var(--ink-3); cursor: pointer;
@@ -279,6 +314,12 @@ body {
   #hud-map-toggle { font-size: 0.72rem; max-width: 6.5rem; overflow: hidden; text-overflow: ellipsis; }
   #hud-map-toggle .map-label { display: none; }
 
+  .goals-strip {
+    top: calc(4.55rem + env(safe-area-inset-top));
+    left: 0.4rem; right: 0.4rem; transform: none;
+    font-size: 0.68rem; padding: 0.3rem 0.65rem;
+  }
+
   .toolbar {
     left: 0; right: 0; top: auto; bottom: 0; transform: none;
     width: auto; max-width: none;
@@ -321,7 +362,7 @@ body {
   .toast { border-radius: var(--r-md); justify-content: flex-start; font-size: 0.78rem; padding: 0.45rem 0.75rem; }
 
   .fleet {
-    top: calc(4.6rem + env(safe-area-inset-top));
+    top: calc(5.35rem + env(safe-area-inset-top));
     right: 0.4rem; left: auto; bottom: auto;
     flex-direction: column; align-items: flex-end;
     max-height: 28vh; overflow-y: auto; overflow-x: hidden;

@@ -2,12 +2,14 @@ import { TIERS, TRACK_TYPES, fmtMoney, fmtInt } from "../core/config.js";
 import { incomePerMin } from "../sim/simulation.js";
 import { on } from "../core/bus.js";
 import { icon } from "./icons.js";
+import { formatNextGoal, goalsSummary } from "./goals.js";
 
 export class Hud {
   constructor(game) {
     this.game = game;
     this.root = document.getElementById("hud");
     this.buildTopbar();
+    this.buildGoalsStrip();
     this.buildToolbar();
     this.buildHintbar();
     this.buildToasts();
@@ -34,6 +36,7 @@ export class Hud {
           <button class="btn small" data-speed="4" title="Quadruple speed">4×</button>
         </div>
         <button class="btn small" id="hud-map-toggle" title="Switch map (M)"></button>
+        <button class="btn quiet small" id="hud-goals" title="Milestones">${icon("medal")}</button>
         <button class="btn quiet small" id="hud-help" title="How to play">${icon("info")}</button>
         <button class="btn quiet small danger" id="hud-newgame" title="Start over">${icon("restart")}</button>
       </div>
@@ -43,10 +46,33 @@ export class Hud {
       b.addEventListener("click", () => { this.game.state.speed = +b.dataset.speed; })
     );
     el.querySelector("#hud-map-toggle").addEventListener("click", () => this.game.toggleMap());
+    el.querySelector("#hud-goals").addEventListener("click", () => this.game.openGoals());
     el.querySelector("#hud-help").addEventListener("click", () => this.game.openIntro());
     el.querySelector("#hud-newgame").addEventListener("click", () => {
       if (confirm("Start a new game? Current progress will be erased.")) this.game.newGame();
     });
+  }
+
+  buildGoalsStrip() {
+    this.goalsStrip = document.createElement("div");
+    this.goalsStrip.className = "goals-strip";
+    this.goalsStrip.addEventListener("click", () => this.game.openGoals());
+    this.root.appendChild(this.goalsStrip);
+    this.refreshGoals();
+  }
+
+  refreshGoals() {
+    if (!this.goalsStrip) return;
+    const s = this.game.state;
+    const { done, total } = goalsSummary(s);
+    const next = formatNextGoal(s);
+    if (!next) {
+      this.goalsStrip.innerHTML = `${icon("medal")}<span>All milestones complete</span>`;
+      this.goalsStrip.classList.add("done");
+      return;
+    }
+    this.goalsStrip.classList.remove("done");
+    this.goalsStrip.innerHTML = `${icon("medal")}<span><b>Next:</b> ${next}</span><span class="goals-count">${done}/${total}</span>`;
   }
 
   buildToolbar() {

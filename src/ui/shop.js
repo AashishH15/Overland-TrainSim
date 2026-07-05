@@ -85,7 +85,11 @@ export function openIntro(game, { firstRun = false } = {}) {
         </div>
         <div class="step">${icon("coins")}
           <div><h4>4 · Reinvest the profit</h4>
-          <p>Expand to new cities, upgrade track, and unlock faster trains. Stay above -$250k or you go bankrupt.</p></div>
+          <p>Expand to new cities, upgrade track, and unlock faster trains. Hit milestones for progress — connect all 50 US metros or reach $5M to win. Stay above -$250k or you go bankrupt.</p></div>
+        </div>
+        <div class="step">${icon("medal")}
+          <div><h4>5 · Track your milestones</h4>
+          <p>Open the medal button anytime to see goals, progress bars, and win conditions. The bar under the stats shows what to chase next.</p></div>
         </div>
       </div>
       <div class="controls-hint">

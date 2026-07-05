@@ -36,7 +36,10 @@ Then open the printed local URL (default http://localhost:5173).
    trains heading to their destination, and pay fares scaled by distance and
    train tier. Track maintenance and train operating costs drain cash - stay
    above -$250k or you go bankrupt.
-5. Track can be **upgraded** in place (click it in Select mode) and demolished
+5. **Milestones** track your progress (medal button in the HUD). Win by
+   connecting all 50 US metros or reaching **$5M cash**. You can keep playing
+   after a win.
+6. Track can be **upgraded** in place (click it in Select mode) and demolished
    for a 25% refund. Trains can be sold for 50%.
 
 ### Controls
