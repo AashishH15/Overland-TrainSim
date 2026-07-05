@@ -110,6 +110,50 @@ body {
 .stat.stat-lost.critical .v { color: var(--bad); animation: pulse-bad 1.2s ease-in-out infinite; }
 @keyframes pulse-bad { 50% { opacity: 0.55; } }
 
+/* ---------- GitHub star pill ---------- */
+.github-star {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.42rem 0.7rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: var(--shadow);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.github-star:hover {
+  background: var(--panel-2);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+}
+.github-star:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.github-star-divider {
+  width: 1px;
+  height: 0.95rem;
+  background: var(--line);
+  flex-shrink: 0;
+}
+.github-star-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.github-star-icon { color: var(--accent); width: 0.95em; height: 0.95em; }
+
 /* ---------- Toolbar ---------- */
 .toolbar {
   position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%);
@@ -344,6 +388,14 @@ body {
     flex-direction: column; align-items: stretch; gap: 0.35rem;
     padding: 0.4rem 0.45rem; max-width: none;
   }
+  .github-star {
+    top: max(0.35rem, env(safe-area-inset-top));
+    right: max(0.4rem, env(safe-area-inset-right));
+    padding: 0.35rem 0.55rem;
+    font-size: 0.72rem;
+    gap: 0.35rem;
+  }
+  .github-star-label { display: none; }
   .topbar-stats {
     display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.15rem 0.35rem;
     width: 100%;

@@ -1,4 +1,5 @@
 // Phosphor Icons (MIT license, https://phosphoricons.com) imported as raw SVG.
+import githubLogo from "@phosphor-icons/core/assets/bold/github-logo-bold.svg?raw";
 import handGrabbing from "@phosphor-icons/core/assets/bold/hand-grabbing-bold.svg?raw";
 import cursor from "@phosphor-icons/core/assets/bold/cursor-bold.svg?raw";
 import bank from "@phosphor-icons/core/assets/bold/bank-bold.svg?raw";
@@ -24,6 +25,7 @@ import star from "@phosphor-icons/core/assets/bold/star-bold.svg?raw";
 import usersThree from "@phosphor-icons/core/assets/bold/users-three-bold.svg?raw";
 
 const SVGS = {
+  github: githubLogo,
   select: cursor,
   pan: handGrabbing,
   station: bank,
