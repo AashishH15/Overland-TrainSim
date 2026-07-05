@@ -2,6 +2,9 @@ import { TIERS, fmtMoney, fmtInt, fmtSimDuration, GAME_MODES } from "../core/con
 import { lostRatePerMin, displaySimTime } from "../sim/simulation.js";
 import { formatSurvivalBest, recordSurvivalBest } from "../core/survivalBest.js";
 import { badgesSummary, evaluateSurvivalBadges } from "../core/survivalBadges.js";
+import { isOfficialRun } from "../core/integrity.js";
+import { getSavedHandle, submitLeaderboardScore } from "../core/leaderboard.js";
+import { openLeaderboardModal } from "./leaderboardModal.js";
 import { icon } from "./icons.js";
 import { shareModalActions, bindShareAction } from "./share.js";
 
@@ -120,6 +123,23 @@ export function openNetworkCollapse(game) {
   const { isNew, bestSec, previousSec } = recordSurvivalBest(runSec);
   const { done, total } = badgesSummary();
   const bestLabel = fmtSimDuration(bestSec);
+  const official = isOfficialRun(s);
+
+  const submitSection = official && runSec > 0 ? `
+    <div class="lb-submit-box" style="margin:1rem 0 1rem; padding:0.75rem; border-radius:8px; background:rgba(42,109,181,0.12); border:1px solid rgba(42,109,181,0.3); text-align:left;">
+      <div style="font-weight:bold; font-size:0.85rem; margin-bottom:0.3rem; color:#edf1f6; display:flex; align-items:center; gap:0.4rem;">
+        ${icon("trophy")} Global Leaderboard
+      </div>
+      <div style="font-size:0.76rem; color:#97a3b4; margin-bottom:0.5rem;">
+        Official run verified! Submit your survival record of <b>${fmtSimDuration(runSec)}</b>:
+      </div>
+      <div style="display:flex; gap:0.4rem;">
+        <input type="text" id="lb-handle-input" placeholder="Enter handle (max 20 chars)" maxlength="20" value="${getSavedHandle()}" style="flex:1; padding:0.4rem 0.6rem; border-radius:4px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.4); color:#fff; font-size:0.85rem;" />
+        <button class="btn primary small" id="lb-submit-btn">Submit</button>
+      </div>
+      <div id="lb-submit-msg" style="font-size:0.76rem; margin-top:0.4rem; min-height:1rem;"></div>
+    </div>
+  ` : "";
 
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
@@ -138,10 +158,12 @@ export function openNetworkCollapse(game) {
     ? `<b style="color:var(--good);">New personal best!</b>${previousSec > 0 ? ` (was ${fmtSimDuration(previousSec)})` : ""}`
     : `Personal best · <b>${bestLabel}</b> · ${fmtSimDuration(Math.max(0, bestSec - runSec))} short of your record`}
       </div>
-      <div class="sub" style="font-size:0.78rem; margin-bottom:1.2rem;">
+      <div class="sub" style="font-size:0.78rem; margin-bottom:0.8rem;">
         Delivered ${fmtInt(s.totalDelivered)} passengers · Peak lost rate ${fmtInt(lostRatePerMin(s))}/min · ${fmtInt(done)}/${fmtInt(total)} badges unlocked
       </div>
+      ${submitSection}
       <div class="modal-footer" style="justify-content:center; flex-wrap:wrap;">
+        <button class="btn quiet" data-view-lb>${icon("trophy")} Leaderboard</button>
         ${shareModalActions(true)}
         <button class="btn quiet" data-restart>Try again</button>
       </div>
@@ -149,6 +171,50 @@ export function openNetworkCollapse(game) {
   `;
   document.getElementById("hud").appendChild(backdrop);
   bindShareAction(backdrop, game, { headline: "Network collapsed", elapsedSec: runSec });
+
+  backdrop.querySelector("[data-view-lb]")?.addEventListener("click", () => {
+    openLeaderboardModal(game, s.currentMap);
+  });
+
+  const submitBtn = backdrop.querySelector("#lb-submit-btn");
+  const handleInput = backdrop.querySelector("#lb-handle-input");
+  const msgEl = backdrop.querySelector("#lb-submit-msg");
+
+  if (submitBtn && handleInput && msgEl) {
+    submitBtn.addEventListener("click", async () => {
+      const handle = handleInput.value.trim();
+      if (!handle) {
+        msgEl.style.color = "var(--bad)";
+        msgEl.textContent = "Please enter a handle.";
+        return;
+      }
+      submitBtn.disabled = true;
+      handleInput.disabled = true;
+      msgEl.style.color = "var(--accent)";
+      msgEl.textContent = "Submitting score…";
+
+      try {
+        await submitLeaderboardScore({
+          handle,
+          mode: "survival",
+          map: s.currentMap,
+          survivedSec: runSec,
+          trains: Object.keys(s.trains || {}).length,
+          passengers: s.totalDelivered,
+        });
+        msgEl.style.color = "var(--good)";
+        msgEl.textContent = "Score submitted to Global Leaderboard!";
+        game.hud.toast("Leaderboard score submitted!", "good");
+        setTimeout(() => openLeaderboardModal(game, s.currentMap), 600);
+      } catch (err) {
+        submitBtn.disabled = false;
+        handleInput.disabled = false;
+        msgEl.style.color = "var(--bad)";
+        msgEl.textContent = err.message || "Failed to submit score.";
+      }
+    });
+  }
+
   backdrop.querySelector("[data-restart]").addEventListener("click", () => {
     backdrop.remove();
     game.newGame();

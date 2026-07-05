@@ -535,3 +535,32 @@ body {
     margin: max(0.4rem, env(safe-area-inset-top)) 0 max(0.4rem, env(safe-area-inset-bottom));
   }
 }
+
+/* ---------- Leaderboard Styling ---------- */
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #8a96a6;
+}
+.rank-badge.gold {
+  color: #ffd700;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+}
+.rank-badge.silver {
+  color: #e0e0e0;
+  text-shadow: 0 0 6px rgba(224, 224, 224, 0.3);
+}
+.rank-badge.bronze {
+  color: #cd7f32;
+}
+.lb-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+.lb-row.self-row {
+  background: rgba(42, 109, 181, 0.22) !important;
+  border-left: 3px solid var(--accent);
+}
+
