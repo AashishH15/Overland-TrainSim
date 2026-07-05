@@ -3,6 +3,7 @@ import { USA_METROS } from "../data/usaMetros.js";
 import { NYC_STOPS, waterFraction } from "../data/nycMap.js";
 import { projectMetro } from "../render/usaProjection.js";
 import { nodeDist, edgeKey, bumpPathVersion } from "./graph.js";
+import { applySaveSeal, verifySaveSeal } from "./integrity.js";
 
 const SAVE_KEY = "railEmpireSave_v1";
 
@@ -72,6 +73,7 @@ export function freshState(gameMode = "tycoon") {
     collapseReason: null, // null | "network"
     survivalTime: 0, // sim-seconds survived at collapse (score)
     cityMapsUnlocked: false,
+    officialRun: true,
     survivalRun: gameMode === "survival" ? {
       peakTrains: 0,
       hadOvercrowding: false,
@@ -102,6 +104,7 @@ export function removeEdge(state, mapKey, edgeId) {
 
 export function saveState(state) {
   try {
+    applySaveSeal(state);
     localStorage.setItem(SAVE_KEY, JSON.stringify(state));
   } catch (e) {
     console.warn("save failed", e);
@@ -123,6 +126,7 @@ export function loadState() {
     if (s.collapseReason == null) s.collapseReason = null;
     if (s.survivalTime == null) s.survivalTime = 0;
     if (s.cityMapsUnlocked == null) s.cityMapsUnlocked = false;
+    if (s.officialRun == null) s.officialRun = true;
     if (s.clockStarted == null) {
       const waiting = ["usa", "nyc"].reduce(
         (n, mk) => n + Object.values(s.maps[mk].nodes).reduce((w, node) => w + node.waiting.reduce((a, g) => a + g.count, 0), 0),
@@ -151,6 +155,7 @@ export function loadState() {
         else s.maps[mk].nodes[id] = fn;
       }
     }
+    verifySaveSeal(s);
     return s;
   } catch {
     return null;

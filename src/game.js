@@ -19,6 +19,7 @@ import { openGoals, openVictory, syncGoalProgress } from "./ui/goals.js";
 import { openNetworkOverview } from "./ui/overview.js";
 import { evaluateNewGoals } from "./core/goals.js";
 import { evaluateSurvivalBadges } from "./core/survivalBadges.js";
+import { guardStateIntegrity, permitStateWrites } from "./core/integrity.js";
 import { icon } from "./ui/icons.js";
 import { isMobileExperience, tapSlack } from "./util/device.js";
 import { on, emit } from "./core/bus.js";
@@ -29,6 +30,7 @@ export class Game {
   constructor() {
     const loaded = loadState();
     this.state = loaded ?? freshState("tycoon");
+    guardStateIntegrity(this.state);
     this.mode = "select";
     this.trackStart = null;      // nodeId while drawing track
     this.routeDraft = null;      // { trainId, stops: [] }
@@ -209,6 +211,7 @@ export class Game {
   }
 
   resetToState(state) {
+    guardStateIntegrity(state);
     this.state = state;
     for (const mk of ["usa", "nyc"]) {
       const b = this.bundles[mk];
@@ -261,19 +264,21 @@ export class Game {
 
   /** One-time NYC detail map purchase (deducts cash). */
   purchaseNycMap() {
-    if (cityMapsUnlocked(this.state)) return true;
-    const price = ECON.cityMapPurchasePrice;
-    if (this.state.cash < price) {
-      emit("toast", {
-        msg: `Need ${fmtMoney(price)} to buy the NYC map`,
-        kind: "bad",
-      });
-      return false;
-    }
-    this.state.cash -= price;
-    this.state.cityMapsUnlocked = true;
-    emit("toast", { msg: `NYC map purchased for ${fmtMoney(price)}`, kind: "good" });
-    return true;
+    return permitStateWrites(() => {
+      if (cityMapsUnlocked(this.state)) return true;
+      const price = ECON.cityMapPurchasePrice;
+      if (this.state.cash < price) {
+        emit("toast", {
+          msg: `Need ${fmtMoney(price)} to buy the NYC map`,
+          kind: "bad",
+        });
+        return false;
+      }
+      this.state.cash -= price;
+      this.state.cityMapsUnlocked = true;
+      emit("toast", { msg: `NYC map purchased for ${fmtMoney(price)}`, kind: "good" });
+      return true;
+    });
   }
 
   setMode(mode) {
@@ -314,12 +319,14 @@ export class Game {
   }
 
   spend(amount) {
-    if (this.state.cash < amount) {
-      emit("toast", { msg: `Not enough cash (need ${fmtMoney(amount)})`, kind: "bad" });
-      return false;
-    }
-    this.state.cash -= amount;
-    return true;
+    return permitStateWrites(() => {
+      if (this.state.cash < amount) {
+        emit("toast", { msg: `Not enough cash (need ${fmtMoney(amount)})`, kind: "bad" });
+        return false;
+      }
+      this.state.cash -= amount;
+      return true;
+    });
   }
 
   unlockNode(nodeId) {
@@ -403,7 +410,9 @@ export class Game {
     const mapKey = this.state.currentMap;
     const edge = this.activeMapState.edges[edgeId];
     if (!edge) return;
-    this.state.cash += bulldozeRefund(mapKey, edge);
+    permitStateWrites(() => {
+      this.state.cash += bulldozeRefund(mapKey, edge);
+    });
     removeEdge(this.state, mapKey, edgeId);
     this.renderers[mapKey].track.sync();
     revalidateTrains(this.state);
@@ -414,25 +423,29 @@ export class Game {
   buyTrain(tier) {
     const t = TIERS[tier];
     if (!this.spend(t.price)) return false;
-    const id = `t${this.state.nextTrainId}`;
-    this.state.trains[id] = {
-      id, num: this.state.nextTrainId++,
-      map: this.state.currentMap,
-      tier,
-      route: [], path: null, seg: 0, prog: 0, dwell: 0,
-      state: "idle", passengers: [], revenueTotal: 0,
-    };
-    emit("toast", { msg: `${t.short} train purchased. Now pick its route.`, kind: "good" });
-    this.startRouteAssign(id);
-    this.processGoals();
-    return true;
+    return permitStateWrites(() => {
+      const id = `t${this.state.nextTrainId}`;
+      this.state.trains[id] = {
+        id, num: this.state.nextTrainId++,
+        map: this.state.currentMap,
+        tier,
+        route: [], path: null, seg: 0, prog: 0, dwell: 0,
+        state: "idle", passengers: [], revenueTotal: 0,
+      };
+      emit("toast", { msg: `${t.short} train purchased. Now pick its route.`, kind: "good" });
+      this.startRouteAssign(id);
+      this.processGoals();
+      return true;
+    });
   }
 
   sellTrain(trainId) {
     const train = this.state.trains[trainId];
     if (!train) return;
-    this.state.cash += TIERS[train.tier].price * 0.5;
-    delete this.state.trains[trainId];
+    permitStateWrites(() => {
+      this.state.cash += TIERS[train.tier].price * 0.5;
+      delete this.state.trains[trainId];
+    });
     this.inspector.close();
     emit("toast", { msg: "Train sold (50% refund)" });
   }

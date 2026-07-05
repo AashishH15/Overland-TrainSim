@@ -9,6 +9,7 @@ import {
   shouldTransferAtStop,
 } from "./serviceGraph.js";
 import { emit } from "../core/bus.js";
+import { permitStateWrites } from "../core/integrity.js";
 
 let tickAcc = 0;
 
@@ -20,22 +21,24 @@ export function demandFactor(simTime) {
 
 export function stepSimulation(state, dt) {
   if (state.gameOver || state.speed === 0) return;
-  const simDt = dt * state.speed;
+  permitStateWrites(() => {
+    const simDt = dt * state.speed;
 
-  updateTrains(state, simDt);
+    updateTrains(state, simDt);
 
-  tickAcc += simDt;
-  while (tickAcc >= SIM.tickSeconds) {
-    tickAcc -= SIM.tickSeconds;
-    const spawned = spawnPassengers(state, SIM.tickSeconds);
-    if (!state.clockStarted) {
-      if (spawned === 0) continue;
-      state.clockStarted = true;
-      emit("toast", { msg: "First riders arrived — clock started", kind: "good" });
+    tickAcc += simDt;
+    while (tickAcc >= SIM.tickSeconds) {
+      tickAcc -= SIM.tickSeconds;
+      const spawned = spawnPassengers(state, SIM.tickSeconds);
+      if (!state.clockStarted) {
+        if (spawned === 0) continue;
+        state.clockStarted = true;
+        emit("toast", { msg: "First riders arrived — clock started", kind: "good" });
+      }
+      state.simTime += SIM.tickSeconds;
+      economyTick(state, SIM.tickSeconds);
     }
-    state.simTime += SIM.tickSeconds;
-    economyTick(state, SIM.tickSeconds);
-  }
+  });
 }
 
 /** HUD timer and survival score — frozen until the clock starts. */
