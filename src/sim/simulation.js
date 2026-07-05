@@ -1,5 +1,6 @@
 import { TIERS, TRACK_TYPES, ECON, SIM } from "../core/config.js";
 import { shortestPath, cachedDijkstra } from "../core/graph.js";
+import { effectiveDemand } from "../core/economy.js";
 import {
   canBoardTrain,
   mergeWaiting,
@@ -45,15 +46,15 @@ function economyTick(state, dt) {
       const waitingCount = node.waiting.reduce((s, g) => s + g.count, 0);
       if (waitingCount >= SIM.maxWaitingPerStop) continue;
 
-      node.spawnAcc += node.demand * SIM.demandScale[mapKey] * df * dt;
+      node.spawnAcc += effectiveDemand(node, state) * SIM.demandScale[mapKey] * df * dt;
       if (node.spawnAcc < 1) continue;
       const spawn = Math.floor(node.spawnAcc);
       node.spawnAcc -= spawn;
 
-      // Destination: weighted by demand, mildly discounted by distance.
+      // Destination: weighted by effective demand, mildly discounted by distance.
       let totalW = 0;
       const weights = reachable.map((r) => {
-        const d = ms.nodes[r.id].demand;
+        const d = effectiveDemand(ms.nodes[r.id], state);
         const w = Math.pow(d, 1.2) / (0.6 + r.dist / 50);
         totalW += w;
         return w;

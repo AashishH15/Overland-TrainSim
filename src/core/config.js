@@ -96,6 +96,14 @@ export const SIM = {
   maxWaitingPerStop: 400,
 };
 
+// City/ridership growth: demand rises gently over time, and faster at
+// stations you actually serve well (transit-oriented development).
+export const GROWTH = {
+  perDayBase: 0.012,       // +1.2% base demand per sim-day (1 sim-day = 240 sim-seconds)
+  perThousandServed: 0.05, // +5% extra demand per 1,000 passengers delivered at this stop
+  maxMultiplier: 3.5,      // soft cap so no station runs away forever
+};
+
 export const fmtMoney = (v) => {
   const sign = v < 0 ? "-" : "";
   v = Math.abs(v);
