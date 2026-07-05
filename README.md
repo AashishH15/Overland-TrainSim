@@ -64,20 +64,26 @@ Progress autosaves to localStorage; "New Game" resets.
 Pushes to `main` build and push `dist/` to the **`gh-pages` branch** via
 `.github/workflows/deploy.yml` (Vite `base` is set to `/3DTrainSim/` in CI).
 
-### Required GitHub setting (fixes the red ❌ deploy)
+### Required GitHub settings
 
-If Actions shows **`pages-build-deployment`** / **`deploy-pages@v5`** failing with
-“Deployment failed, try again later” or environment protection errors, that is a
-**separate** GitHub-managed workflow — not the one in this repo. The real deploy
-already succeeded on `gh-pages`.
+**Pages source:** **Deploy from a branch** → **`gh-pages`** → **`/ (root)`** (you already have this).
 
-1. Open **Settings → Pages → Build and deployment**
-2. Set **Source** to **Deploy from a branch** (not “GitHub Actions”)
-3. Branch **`gh-pages`**, folder **`/ (root)`**
-4. Save — the failing `pages-build-deployment` runs stop mattering
+**Why Actions shows a red ❌:** Two workflows run on every push:
 
-You can confirm deploy worked: **Actions → Deploy to GitHub Pages** should be green,
-and the latest commit on the **`gh-pages`** branch should match your `main` push.
+| Workflow | Branch | What it does |
+|---|---|---|
+| **Deploy to GitHub Pages** ✅ | `main` | Builds the site and pushes `dist/` to `gh-pages` |
+| **pages build and deployment** ❌ | `gh-pages` | GitHub’s bot publishes the branch to Pages |
+
+Your green checkmark is workflow #1. The red X is workflow #2 failing — usually **environment protection** on the `github-pages` environment.
+
+**Fix the red X (one time):**
+
+1. **Settings → Environments → github-pages**
+2. Under **Deployment branches**, choose **No restriction** (or add **`gh-pages`** to the allowed list)
+3. Save, then **Actions → pages build and deployment → Re-run all jobs** (or push any commit to `main`)
+
+The site may already be live at https://aashishh15.github.io/3DTrainSim/ even while the bot workflow shows failed — the files on `gh-pages` are correct; GitHub’s publish step is what’s blocked.
 
 ## Tech
 
