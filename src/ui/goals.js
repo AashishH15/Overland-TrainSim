@@ -96,7 +96,7 @@ function openSurvivalBadges(game) {
   const unlocked = loadUnlockedBadges();
   const best = formatSurvivalBest();
 
-  const categories = ["Duration", "Skill", "Network"];
+  const categories = ["Duration", "Skill", "Network", "Expert"];
   const rows = categories.map((cat) => {
     const items = SURVIVAL_BADGES.filter((b) => b.category === cat).map((b) => {
       const complete = unlocked.has(b.id);

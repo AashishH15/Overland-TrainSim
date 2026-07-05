@@ -29,6 +29,46 @@ export function expandedUsaMetros(state) {
   return Object.values(state.maps.usa.nodes).filter((n) => n.station && n.rank > USA_FREE_RANKS).length;
 }
 
+/** Every USA track segment is Maglev Guideway. */
+export function allUsaTrackMaglev(mapState) {
+  const edges = Object.values(mapState.edges);
+  return edges.length > 0 && edges.every((e) => e.type === 3);
+}
+
+/** Station nodes reachable from each other using only Maglev Guideway. */
+export function maglevConnectedUsaStations(mapState) {
+  if (!allUsaTrackMaglev(mapState)) return 0;
+  const stations = Object.values(mapState.nodes).filter((n) => n.station);
+  if (!stations.length) return 0;
+
+  const adj = {};
+  for (const edge of Object.values(mapState.edges)) {
+    (adj[edge.a] ??= []).push(edge.b);
+    (adj[edge.b] ??= []).push(edge.a);
+  }
+
+  const visited = new Set();
+  const queue = [stations[0].id];
+  while (queue.length) {
+    const u = queue.pop();
+    if (visited.has(u)) continue;
+    visited.add(u);
+    for (const v of adj[u] ?? []) {
+      if (!visited.has(v)) queue.push(v);
+    }
+  }
+  return stations.filter((n) => visited.has(n.id)).length;
+}
+
+export function usaMaglevNation(state) {
+  const ms = state.maps.usa;
+  return (
+    stationsOnMap(ms) >= USA_METRO_COUNT
+    && allUsaTrackMaglev(ms)
+    && maglevConnectedUsaStations(ms) >= USA_METRO_COUNT
+  );
+}
+
 /** Milestones ordered for progression UI. `win` goals trigger the victory screen once. */
 export const GOALS = [
   {
@@ -66,6 +106,7 @@ export const GOALS = [
     id: "cash_2m",
     title: "In the black",
     desc: "Reach $2M cash",
+    progressFormat: "money",
     progress: (s) => ({ current: Math.max(0, s.cash), target: 2_000_000 }),
     done: (s) => s.cash >= 2_000_000,
   },
@@ -143,6 +184,7 @@ export const GOALS = [
     title: "Rail tycoon",
     desc: "Reach $5M cash",
     win: true,
+    progressFormat: "money",
     progress: (s) => ({ current: Math.max(0, s.cash), target: 5_000_000 }),
     done: (s) => s.cash >= 5_000_000,
   },
@@ -200,7 +242,7 @@ export function goalProgressLabel(goal, state) {
   const p = goal.progress?.(state);
   if (!p) return goal.desc;
   const cur = Math.min(p.current, p.target);
-  if (p.target >= 1_000_000) {
+  if (goal.progressFormat === "money") {
     return `${fmtMoney(cur)} / ${fmtMoney(p.target)}`;
   }
   if (Number.isInteger(p.target) && p.target >= 1000) {

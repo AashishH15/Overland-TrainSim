@@ -3,6 +3,9 @@ import {
   USA_METRO_COUNT,
   stationsOnMap,
   trainCount,
+  usaMaglevNation,
+  maglevConnectedUsaStations,
+  allUsaTrackMaglev,
   goalProgressLabel,
   goalProgressRatio,
 } from "./goals.js";
@@ -15,7 +18,7 @@ export const SURVIVAL_BADGES = [
   {
     id: "survive_10m",
     category: "Duration",
-    title: "Still standing",
+    title: "Rush Hour Veteran",
     desc: "Survive 10 minutes",
     progressUnit: "time",
     progress: (s) => ({ current: s.simTime, target: 600 }),
@@ -24,7 +27,7 @@ export const SURVIVAL_BADGES = [
   {
     id: "survive_30m",
     category: "Duration",
-    title: "Holding the line",
+    title: "Peak Operator",
     desc: "Survive 30 minutes",
     progressUnit: "time",
     progress: (s) => ({ current: s.simTime, target: 1800 }),
@@ -33,7 +36,7 @@ export const SURVIVAL_BADGES = [
   {
     id: "survive_1h",
     category: "Duration",
-    title: "Marathon operator",
+    title: "Iron Rail",
     desc: "Survive 1 hour",
     progressUnit: "time",
     progress: (s) => ({ current: s.simTime, target: 3600 }),
@@ -101,6 +104,49 @@ export const SURVIVAL_BADGES = [
     desc: "Build 15 stations on the NYC map",
     progress: (s) => ({ current: stationsOnMap(s.maps.nyc), target: 15 }),
     done: (s) => stationsOnMap(s.maps.nyc) >= 15,
+  },
+  // Expert — independent late-game axes (time, volume, infrastructure)
+  {
+    id: "empire_grade_5h",
+    category: "Expert",
+    title: "Empire Grade",
+    desc: "Survive 5 hours",
+    progressUnit: "time",
+    progress: (s) => ({ current: s.simTime, target: 18_000 }),
+    done: (s) => s.simTime >= 18_000,
+  },
+  {
+    id: "empire_grade_10h",
+    category: "Expert",
+    title: "Empire Ascendant",
+    desc: "Survive 10 hours",
+    progressUnit: "time",
+    progress: (s) => ({ current: s.simTime, target: 36_000 }),
+    done: (s) => s.simTime >= 36_000,
+  },
+  {
+    id: "survival_passengers_1m",
+    category: "Expert",
+    title: "Mass Transit Titan",
+    desc: "Deliver 1,000,000 passengers",
+    progress: (s) => ({ current: s.totalDelivered, target: 1_000_000 }),
+    done: (s) => s.totalDelivered >= 1_000_000,
+  },
+  {
+    id: "survival_maglev_nation",
+    category: "Expert",
+    title: "Maglev Nation",
+    desc: "Connect all 50 US metros on Maglev Guideway only",
+    progress: (s) => {
+      const ms = s.maps.usa;
+      const stations = stationsOnMap(ms);
+      if (stations < USA_METRO_COUNT) {
+        return { current: stations, target: USA_METRO_COUNT };
+      }
+      const connected = allUsaTrackMaglev(ms) ? maglevConnectedUsaStations(ms) : 0;
+      return { current: connected, target: USA_METRO_COUNT };
+    },
+    done: usaMaglevNation,
   },
 ];
 
