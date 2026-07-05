@@ -1,4 +1,4 @@
-# 3DTrainSim — Low-Poly 3D Train Network Builder
+# 3DTrainSim: A Low-Poly 3D Train Network Builder
 
 A browser-based train tycoon game built with Three.js. Design, build, and operate
 a passenger rail network across two scales:
@@ -22,10 +22,10 @@ Then open the printed local URL (default http://localhost:5173).
 
 ## How to play
 
-1. **Build stations** - pick the Station tool, click a stop node. On the USA map
+1. **Build stations:** pick the Station tool, click a stop node. On the USA map
    only the top 12 metros start unlocked; locked metros are unlocked (fee) with
    the same click. On the NYC map every landmark is available.
-2. **Lay track** - pick a track type and click station-to-station. Water
+2. **Lay track:** pick a track type and click station-to-station. Water
    crossings in NYC cost x2.6 (bridges are rendered automatically).
    - Standard Track: cheap, Tier I trains only
    - High-Speed Track: Tier I & II
