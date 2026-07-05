@@ -1,4 +1,4 @@
-import { TRACK_TYPES, ECON, WATER_COST_MULT, unlockCost, GROWTH, CROWDING } from "./config.js";
+import { TRACK_TYPES, ECON, WATER_COST_MULT, unlockCost, GROWTH, CROWDING, TIERS } from "./config.js";
 
 export function trackCost(mapKey, type, length, waterFrac = 0) {
   const base = TRACK_TYPES[type].costPerUnit[mapKey] * length;
@@ -57,7 +57,10 @@ export function formatDemandStat(node, state) {
 }
 
 export function platformCapacity(mapKey, node) {
-  return Math.round(CROWDING.platformBase[mapKey] + node.demand * CROWDING.platformPerDemand);
+  const popFactor = node.pop ? Math.pow(node.pop, CROWDING.platformPop2Exp) * CROWDING.platformPopMult : 0;
+  const raw = CROWDING.platformBase[mapKey] + node.demand * CROWDING.platformPerDemand + popFactor;
+  const floor = TIERS[1].capacity * CROWDING.minTrainMultiple;
+  return Math.round(Math.max(raw, floor));
 }
 
 export function formatCrowdingStat(mapKey, node) {

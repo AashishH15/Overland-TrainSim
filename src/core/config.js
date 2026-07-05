@@ -104,8 +104,11 @@ export const GROWTH = {
 };
 
 export const CROWDING = {
-  platformBase: { usa: 40, nyc: 25 },
-  platformPerDemand: 3,
+  platformBase: { usa: 150, nyc: 100 },
+  platformPerDemand: 12,
+  platformPop2Exp: 0.75,
+  platformPopMult: 45,
+  minTrainMultiple: 1.5, // platform must hold at least this many Tier I trainloads
   patienceSec: 90,
   dropoutRatePerSec: 0.02,
 };
