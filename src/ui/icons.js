@@ -19,6 +19,7 @@ import arrowCounterClockwise from "@phosphor-icons/core/assets/bold/arrow-counte
 import info from "@phosphor-icons/core/assets/bold/info-bold.svg?raw";
 import lightning from "@phosphor-icons/core/assets/bold/lightning-bold.svg?raw";
 import lockSimple from "@phosphor-icons/core/assets/bold/lock-simple-bold.svg?raw";
+import medal from "@phosphor-icons/core/assets/bold/medal-bold.svg?raw";
 import usersThree from "@phosphor-icons/core/assets/bold/users-three-bold.svg?raw";
 
 const SVGS = {
@@ -43,6 +44,7 @@ const SVGS = {
   lightning,
   lock: lockSimple,
   passengers: usersThree,
+  medal,
 };
 
 // Returns inline-SVG markup wrapped in a sizing span. Color follows currentColor.

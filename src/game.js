@@ -15,6 +15,8 @@ import { MAP_RENDER } from "./render/constants.js";
 import { Hud } from "./ui/hud.js";
 import { Inspector } from "./ui/inspector.js";
 import { openShop as openShopModal, openGameOver, openIntro } from "./ui/shop.js";
+import { openGoals, openVictory, syncGoalProgress } from "./ui/goals.js";
+import { evaluateNewGoals } from "./core/goals.js";
 import { icon } from "./ui/icons.js";
 import { isMobileExperience, tapSlack } from "./util/device.js";
 import { on, emit } from "./core/bus.js";
@@ -57,7 +59,10 @@ export class Game {
 
     this.hud = new Hud(this);
     this.inspector = new Inspector(this);
+    syncGoalProgress(this.state);
+    this.goalCheckAcc = 0;
     on("gameOver", () => openGameOver(this));
+    on("goalsUpdated", () => this.hud.refreshGoals());
 
     this.raycaster = new THREE.Raycaster();
     this.pointer = new THREE.Vector2();
@@ -103,6 +108,21 @@ export class Game {
   }
 
   openIntro() { openIntro(this); }
+  openGoals() { openGoals(this); }
+
+  processGoals() {
+    if (this.state.gameOver) return;
+    const newly = evaluateNewGoals(this.state);
+    if (!newly.length) return;
+    for (const g of newly) {
+      this.hud.toast(`Milestone: ${g.title}`, "good");
+      if (g.win && !this.state.victoryShown) {
+        this.state.victoryShown = true;
+        openVictory(this, g);
+      }
+    }
+    emit("goalsUpdated");
+  }
 
   configureMobile() {
     if (!isMobileExperience()) return;
@@ -170,6 +190,7 @@ export class Game {
     this.inspector.close();
     this.hud.renderToolbar();
     emit("toast", { msg: "New empire started. Build stations, lay track, buy trains!", kind: "good" });
+    this.processGoals();
   }
 
   toggleMap() {
@@ -266,6 +287,7 @@ export class Game {
     this.renderers[mapKey].nodes.rebuildNode(node);
     if (this.inspector.current?.id === nodeId) this.inspector.showNode(nodeId);
     this.updateHint();
+    this.processGoals();
   }
 
   tryBuildTrack(aId, bId, type) {
@@ -293,6 +315,7 @@ export class Game {
     emit("toast", { msg: `${TRACK_TYPES[type].name} laid for ${fmtMoney(cost)}${bridge}`, kind: "good" });
     // Chain: continue drawing from the new endpoint.
     this.trackStart = bId;
+    this.processGoals();
   }
 
   upgradeEdge(edgeId, newType) {
@@ -334,6 +357,7 @@ export class Game {
     };
     emit("toast", { msg: `${t.short} train purchased. Now pick its route.`, kind: "good" });
     this.startRouteAssign(id);
+    this.processGoals();
     return true;
   }
 
@@ -399,6 +423,7 @@ export class Game {
     emit("toast", { msg: "Route assigned. All aboard!", kind: "good" });
     this.routeDraft = null;
     this.setMode("select");
+    this.processGoals();
   }
 
   openShop() { openShopModal(this); }
@@ -689,6 +714,12 @@ export class Game {
     requestAnimationFrame(() => this.loop());
     const dt = Math.min(this.clock.getDelta(), 0.1);
     stepSimulation(this.state, dt);
+
+    this.goalCheckAcc += dt;
+    if (this.goalCheckAcc >= 2) {
+      this.goalCheckAcc = 0;
+      this.processGoals();
+    }
 
     const mk = this.state.currentMap;
     const r = this.renderers[mk];
