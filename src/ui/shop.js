@@ -160,7 +160,7 @@ export function openIntro(game, { firstRun = false } = {}) {
   backdrop.className = "modal-backdrop";
   backdrop.innerHTML = `
     <div class="modal" style="width:min(34rem,92vw);">
-      <h2>${icon("train")} 3DTrainSim</h2>
+      <h2>${icon("train")} Overland</h2>
       <div class="sub">Build a profitable passenger rail network across the USA and New York City.</div>
       <div class="steps">
         <div class="step">${icon("station")}

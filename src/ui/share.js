@@ -303,7 +303,7 @@ export async function buildShareCardCanvas(mapDataUrl, stats, layout) {
   ctx.textBaseline = "top";
   ctx.fillStyle = "#edf1f6";
   ctx.font = `700 34px ${FONT}`;
-  ctx.fillText("3DTrainSim", 36, panelY + 24);
+  ctx.fillText("Overland", 36, panelY + 24);
 
   ctx.fillStyle = "#97a3b4";
   ctx.font = `600 22px ${FONT}`;
@@ -350,7 +350,7 @@ function shareSummary(stats) {
     `${stats.timeLabel} ${stats.time}`,
     `${stats.trains} trains · ${stats.passengers} passengers`,
     `${stats.cash} cash · ${stats.earned} earned`,
-    `Built in 3DTrainSim — ${SITE_URL}`,
+    `Built in Overland — ${SITE_URL}`,
   ].join("\n");
 }
 
@@ -368,10 +368,10 @@ async function downloadBlob(blob, filename) {
 }
 
 async function shareImage(blob, stats) {
-  const file = new File([blob], "3dtrainsim-run.png", { type: "image/png" });
+  const file = new File([blob], "overland-run.png", { type: "image/png" });
   const text = shareSummary(stats);
   if (navigator.share) {
-    const payload = { title: "3DTrainSim", text, url: SITE_URL };
+    const payload = { title: "Overland", text, url: SITE_URL };
     if (navigator.canShare?.({ files: [file] })) payload.files = [file];
     try {
       await navigator.share(payload);
@@ -443,7 +443,7 @@ export async function openShareModal(game, opts = {}) {
 
   backdrop.querySelector('[data-share-act="download-png"]')?.addEventListener("click", async () => {
     const blob = await canvasToBlob(cardCanvas);
-    await downloadBlob(blob, "3dtrainsim-run.png");
+    await downloadBlob(blob, "overland-run.png");
     game.hud.toast("Image downloaded", "good");
   });
 

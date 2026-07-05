@@ -30,7 +30,7 @@ export function mountGithubStar(root) {
   el.className = "github-star";
   el.href = REPO_URL;
   el.rel = "noopener noreferrer";
-  el.title = "Star 3DTrainSim on GitHub";
+  el.title = "Star Overland on GitHub";
   el.innerHTML = `
     ${icon("github")}
     <span class="github-star-label">Star on GitHub</span>

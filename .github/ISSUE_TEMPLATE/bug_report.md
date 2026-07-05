@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help us improve 3DTrainSim
+about: Create a report to help us improve Overland
 title: '[Bug] '
 labels: bug
 assignees: ''
