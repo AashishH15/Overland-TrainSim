@@ -17,7 +17,7 @@ const FONT = '"Outfit Variable", "Segoe UI", sans-serif';
 const CARD_W = 1200;
 const STATS_H = 248;
 const CAPTURE_SCALE = 2;
-const SITE_URL = "https://aashishh15.github.io/3DTrainSim/";
+const SITE_URL = "https://overlandgame.netlify.app/";
 
 function mapLabel(mapKey) {
   return mapKey === "nyc" ? "New York City" : "USA National";

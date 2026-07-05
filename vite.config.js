@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 
-// Repo is served from https://<user>.github.io/3DTrainSim/ on GitHub Pages.
+// Served from https://overlandgame.netlify.app/
 export default defineConfig({
   plugins: [],
-  base: process.env.GITHUB_ACTIONS ? "/3DTrainSim/" : "/",
+  base: "/",
 });

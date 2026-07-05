@@ -10,8 +10,13 @@
   <meta property="og:title" content="Overland — a browser train tycoon" />
   <meta property="og:description"
     content="Build stations, lay track, and run a profitable rail network across the USA and New York City." />
-  <meta property="og:image" content="https://aashishh15.github.io/3DTrainSim/og-image.png" />
-  <meta property="og:url" content="https://aashishh15.github.io/3DTrainSim/" />
+  <script>
+    if (window.location.hostname.includes("github.io")) {
+      window.location.replace("https://overlandgame.netlify.app" + window.location.pathname.replace(/^\/3DTrainSim/, "") + window.location.search + window.location.hash);
+    }
+  </script>
+  <meta property="og:image" content="https://overlandgame.netlify.app/og-image.png" />
+  <meta property="og:url" content="https://overlandgame.netlify.app/" />
   <meta name="twitter:card" content="summary_large_image" />
   <title>Overland</title>
   <link rel="icon"

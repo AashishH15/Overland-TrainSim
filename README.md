@@ -9,7 +9,7 @@ a passenger rail network across two scales:
 
 ## Play
 
-**Play in your browser: https://aashishh15.github.io/3DTrainSim/**
+**Play in your browser: https://overlandgame.netlify.app/**
 
 Or run locally:
 
@@ -106,7 +106,7 @@ badges and personal best persist in localStorage).
 
 ## Deployment
 
-**Live site:** https://aashishh15.github.io/3DTrainSim/
+**Live site:** https://overlandgame.netlify.app/
 
 Pushes to `main` build and push `dist/` to **`gh-pages`** via `.github/workflows/deploy.yml`.
 
