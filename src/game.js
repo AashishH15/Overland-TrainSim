@@ -98,7 +98,7 @@ export class Game {
       const now = performance.now();
       if (document.hidden) {
         const dt = Math.min((now - this.lastHiddenTick) / 1000, 2);
-        stepSimulation(this.state, dt);
+        permitStateWrites(() => stepSimulation(this.state, dt));
         // rAF is paused while hidden; draw an occasional frame so the view
         // is current the moment the tab becomes visible again.
         this.renderers[this.state.currentMap].trains.update();
@@ -806,7 +806,7 @@ export class Game {
   loop() {
     requestAnimationFrame(() => this.loop());
     const dt = Math.min(this.clock.getDelta(), 0.1);
-    stepSimulation(this.state, dt);
+    permitStateWrites(() => stepSimulation(this.state, dt));
 
     this.goalCheckAcc += dt;
     if (this.goalCheckAcc >= 2) {
