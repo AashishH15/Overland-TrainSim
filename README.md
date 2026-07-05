@@ -61,23 +61,28 @@ Progress autosaves to localStorage; "New Game" resets.
 
 **Live site:** https://aashishh15.github.io/3DTrainSim/
 
-Pushes to `main` build and deploy via `.github/workflows/deploy.yml` (Vite `base`
-is `/3DTrainSim/` in CI).
+Pushes to `main` build and push `dist/` to **`gh-pages`** via `.github/workflows/deploy.yml`.
 
-### One-time GitHub setup (required for green deploys)
+### Pages settings
 
-Use **one** deploy path only — do not mix branch deploy with Actions deploy.
+**Settings → Pages → Source:** **Deploy from a branch** → **`gh-pages`** → **`/ (root)`**
 
-1. **Settings → Pages → Build and deployment**
-   - **Source:** **GitHub Actions** (not “Deploy from a branch”)
-2. **Settings → Environments → github-pages**
-   - **Deployment branches:** **No restriction** (or add **`main`**)
-   - Remove any required reviewers if present
-3. Push to `main` or re-run the latest **Deploy to GitHub Pages** workflow
+When **Deploy to GitHub Pages** is green, your site is updated. You may also see a
+red **pages build and deployment** run from GitHub’s bot — that is optional to fix.
 
-You should see a single workflow with **build** + **deploy** jobs both green. The
-old **`pages build and deployment`** bot runs stop mattering once Pages source is
-**GitHub Actions** and you are no longer publishing to the `gh-pages` branch.
+### Fix the bot deploy (optional — clears the red ❌ badge)
+
+**Settings → Environments → `github-pages`**
+
+1. Open the **`github-pages`** environment (not Pages — **Environments** in the left sidebar under Settings)
+2. **Deployment branches** → **No restriction**  
+   (or **Selected branches** and add both **`main`** and **`gh-pages`**)
+3. Turn off **Required reviewers** if it is enabled
+4. Save, then re-run the failed **pages build and deployment** job
+
+The error `Branch "main" is not allowed to deploy to github-pages due to environment
+protection rules` means step 2 is still blocking deploys. Our workflow does not
+use that environment; only GitHub’s publish step does.
 
 ## Tech
 
