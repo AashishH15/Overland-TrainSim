@@ -1,4 +1,4 @@
-# Rail Empire - Low-Poly 3D Train Network Builder
+# 3DTrainSim — Low-Poly 3D Train Network Builder
 
 A browser-based train tycoon game built with Three.js. Design, build, and operate
 a passenger rail network across two scales:
