@@ -1,5 +1,11 @@
 import { TIERS, TRACK_TYPES, ECON, SIM } from "../core/config.js";
-import { shortestPath, cachedDijkstra, reachableStations } from "../core/graph.js";
+import { shortestPath, cachedDijkstra } from "../core/graph.js";
+import {
+  canBoardTrain,
+  mergeWaiting,
+  serviceReachableStations,
+  shouldTransferAtStop,
+} from "./serviceGraph.js";
 import { emit } from "../core/bus.js";
 
 let tickAcc = 0;
@@ -33,7 +39,7 @@ function economyTick(state, dt) {
     // Passenger spawning at stations that can reach at least one other station.
     for (const node of Object.values(ms.nodes)) {
       if (!node.station) continue;
-      const reachable = reachableStations(mapKey, ms, node.id);
+      const reachable = serviceReachableStations(state, mapKey, node.id);
       if (reachable.length === 0) continue;
 
       const waitingCount = node.waiting.reduce((s, g) => s + g.count, 0);
@@ -191,16 +197,27 @@ function handleStop(state, train, nodeId) {
   const ms = state.maps[train.map];
   const node = ms.nodes[nodeId];
   const tier = TIERS[train.tier];
+  const mapKey = train.map;
 
   // Unload passengers destined here.
   let delivered = 0;
   let revenue = 0;
-  train.passengers = train.passengers.filter((g) => {
-    if (g.dest !== nodeId) return true;
-    delivered += g.count;
-    revenue += g.count * g.fareDist * fareFor(train.map) * tier.fareMult;
-    return false;
-  });
+  const staying = [];
+  for (const g of train.passengers) {
+    if (g.dest === nodeId) {
+      delivered += g.count;
+      revenue += g.count * g.fareDist * fareFor(mapKey) * tier.fareMult;
+      continue;
+    }
+    // Transfer: get off at the best stop this train serves toward their destination.
+    if (shouldTransferAtStop(state, mapKey, train, nodeId, g.dest)) {
+      mergeWaiting(node, g.count, g.dest, g.fareDist);
+      continue;
+    }
+    staying.push(g);
+  }
+  train.passengers = staying;
+
   if (delivered > 0) {
     state.cash += revenue;
     state.totalDelivered += delivered;
@@ -211,17 +228,16 @@ function handleStop(state, train, nodeId) {
     emit("delivered", { train, node, delivered, revenue });
   }
 
-  // Board waiting groups whose destination is on this train's route.
+  // Board waiting groups if this train can carry them (direct or first leg of a connection).
   let capacityLeft = tier.capacity - train.passengers.reduce((s, g) => s + g.count, 0);
   if (capacityLeft <= 0) return;
   for (const group of [...node.waiting]) {
     if (capacityLeft <= 0) break;
-    if (!train.route.includes(group.dest) || group.dest === nodeId) continue;
+    if (!canBoardTrain(state, mapKey, train, nodeId, group.dest)) continue;
     const take = Math.min(group.count, capacityLeft);
     group.count -= take;
     capacityLeft -= take;
-    // Fare distance: shortest any-track path from here to destination.
-    const { dist } = cachedDijkstra(train.map, ms, nodeId);
+    const { dist } = cachedDijkstra(mapKey, ms, nodeId);
     const fareDist = dist[group.dest] ?? group.fareDist;
     const carried = train.passengers.find((g) => g.dest === group.dest);
     if (carried) carried.count += take;
