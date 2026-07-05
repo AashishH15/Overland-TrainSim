@@ -23,6 +23,7 @@ import lockSimple from "@phosphor-icons/core/assets/bold/lock-simple-bold.svg?ra
 import medal from "@phosphor-icons/core/assets/bold/medal-bold.svg?raw";
 import star from "@phosphor-icons/core/assets/bold/star-bold.svg?raw";
 import usersThree from "@phosphor-icons/core/assets/bold/users-three-bold.svg?raw";
+import shareNetwork from "@phosphor-icons/core/assets/bold/share-network-bold.svg?raw";
 
 const SVGS = {
   github: githubLogo,
@@ -49,6 +50,7 @@ const SVGS = {
   passengers: usersThree,
   medal,
   star,
+  share: shareNetwork,
 };
 
 // Returns inline-SVG markup wrapped in a sizing span. Color follows currentColor.

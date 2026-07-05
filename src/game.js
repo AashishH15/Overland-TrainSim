@@ -17,6 +17,7 @@ import { Inspector } from "./ui/inspector.js";
 import { openShop as openShopModal, openGameOver, openNetworkCollapse, openIntro, openModePicker } from "./ui/shop.js";
 import { openGoals, openVictory, syncGoalProgress } from "./ui/goals.js";
 import { openNetworkOverview } from "./ui/overview.js";
+import { openShareModal, shareModalActions, bindShareAction } from "./ui/share.js";
 import { evaluateNewGoals } from "./core/goals.js";
 import { evaluateSurvivalBadges } from "./core/survivalBadges.js";
 import { guardStateIntegrity, permitStateWrites } from "./core/integrity.js";
@@ -122,6 +123,7 @@ export class Game {
   openIntro() { openIntro(this); }
   openGoals() { openGoals(this); }
   openOverview() { openNetworkOverview(this); }
+  openShare(opts) { openShareModal(this, opts); }
 
   processGoals() {
     if (this.state.gameOver) return;

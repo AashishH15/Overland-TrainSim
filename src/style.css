@@ -307,6 +307,16 @@ body {
 .modal .sub { color: var(--ink-2); font-size: 0.85rem; margin: 0.25rem 0 1.1rem; }
 .modal-footer { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
 
+.share-modal { width: min(34rem, 92vw); }
+.share-preview-wrap {
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-md);
+  overflow: hidden; min-height: 8rem; display: grid; place-items: center;
+}
+.share-preview { display: block; width: 100%; height: auto; }
+.share-loading { color: var(--ink-2); font-size: 0.85rem; padding: 2rem 1rem; text-align: center; }
+.share-loading.share-error { color: var(--bad); }
+.share-footer { flex-wrap: wrap; justify-content: center; }
+
 .tier-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
 @media (max-width: 700px) { .tier-cards { grid-template-columns: 1fr; } }
 .tier-card {
