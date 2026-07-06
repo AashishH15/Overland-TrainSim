@@ -49,7 +49,7 @@ function getSafeStore(storeName) {
   }
 }
 
-export async function handler(event) {
+export default async (req, context) => {
   const headers = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
@@ -57,15 +57,15 @@ export async function handler(event) {
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   };
 
-  if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers, body: "" };
+  if (req.method === "OPTIONS") {
+    return new Response(null, { statusCode: 204, headers });
   }
 
   const store = getSafeStore("survival-leaderboard");
 
-  if (event.httpMethod === "GET") {
+  if (req.method === "GET") {
     try {
-      const url = new URL(event.rawUrl || `http://localhost${event.path}`);
+      const url = new URL(req.url);
       const map = url.searchParams.get("map") === "nyc" ? "nyc" : "usa";
 
       const boardKey = `board_${map}`;
@@ -82,44 +82,57 @@ export async function handler(event) {
         deviceId: e.deviceId,
       }));
 
-      return {
-        statusCode: 200,
+      return new Response(JSON.stringify({ map, entries: topEntries }), {
+        status: 200,
         headers,
-        body: JSON.stringify({ map, entries: topEntries }),
-      };
+      });
     } catch (err) {
       console.error("GET leaderboard error:", err);
-      return {
-        statusCode: 200,
+      return new Response(JSON.stringify({ map: "usa", entries: [] }), {
+        status: 200,
         headers,
-        body: JSON.stringify({ map: "usa", entries: [] }),
-      };
+      });
     }
   }
 
-  if (event.httpMethod === "POST") {
+  if (req.method === "POST") {
     try {
-      const body = JSON.parse(event.body || "{}");
+      const body = await req.json();
       const { handle, mode, map, survivedSec, trains, passengers, deviceId } = body;
 
       if (!isCleanHandle(handle)) {
-        return { statusCode: 400, headers, body: JSON.stringify({ error: "Invalid or inappropriate handle (2-20 alphanumeric characters)" }) };
+        return new Response(JSON.stringify({ error: "Invalid or inappropriate handle (2-20 alphanumeric characters)" }), {
+          status: 400,
+          headers,
+        });
       }
       if (mode !== "survival" || !["usa", "nyc"].includes(map)) {
-        return { statusCode: 400, headers, body: JSON.stringify({ error: "Invalid game mode or map" }) };
+        return new Response(JSON.stringify({ error: "Invalid game mode or map" }), {
+          status: 400,
+          headers,
+        });
       }
       if (!deviceId || typeof deviceId !== "string" || deviceId.length < 6) {
-        return { statusCode: 400, headers, body: JSON.stringify({ error: "Missing device identification" }) };
+        return new Response(JSON.stringify({ error: "Missing device identification" }), {
+          status: 400,
+          headers,
+        });
       }
       const numSec = Number(survivedSec);
       if (isNaN(numSec) || numSec <= 0 || numSec > 36 * 3600) {
-        return { statusCode: 400, headers, body: JSON.stringify({ error: "Implausible survival time" }) };
+        return new Response(JSON.stringify({ error: "Implausible survival time" }), {
+          status: 400,
+          headers,
+        });
       }
       const trainCount = Math.max(1, Math.round(Number(trains) || 1));
       const paxCount = Math.max(0, Math.round(Number(passengers) || 0));
 
       if (paxCount > maxPlausiblePassengers(numSec, trainCount)) {
-        return { statusCode: 400, headers, body: JSON.stringify({ error: "Implausible passenger count for recorded run time" }) };
+        return new Response(JSON.stringify({ error: "Implausible passenger count for recorded run time" }), {
+          status: 400,
+          headers,
+        });
       }
 
       // Rate limit check: 30 seconds per deviceId
@@ -128,7 +141,10 @@ export async function handler(event) {
       const now = Date.now();
       if (deviceRecord.lastSubmit && now - deviceRecord.lastSubmit < 30000) {
         const waitSec = Math.ceil((30000 - (now - deviceRecord.lastSubmit)) / 1000);
-        return { statusCode: 429, headers, body: JSON.stringify({ error: `Rate limit: please wait ${waitSec}s before submitting again` }) };
+        return new Response(JSON.stringify({ error: `Rate limit: please wait ${waitSec}s before submitting again` }), {
+          status: 429,
+          headers,
+        });
       }
 
       await store.setJSON(deviceKey, { lastSubmit: now });
@@ -162,16 +178,21 @@ export async function handler(event) {
 
       await store.setJSON(boardKey, entries);
 
-      return {
-        statusCode: 200,
+      return new Response(JSON.stringify({ success: true, entry: newEntry }), {
+        status: 200,
         headers,
-        body: JSON.stringify({ success: true, entry: newEntry }),
-      };
+      });
     } catch (err) {
       console.error("POST leaderboard error:", err);
-      return { statusCode: 500, headers, body: JSON.stringify({ error: "Server error saving score" }) };
+      return new Response(JSON.stringify({ error: "Server error saving score" }), {
+        status: 500,
+        headers,
+      });
     }
   }
 
-  return { statusCode: 405, headers, body: JSON.stringify({ error: "Method Not Allowed" }) };
-}
+  return new Response(JSON.stringify({ error: "Method Not Allowed" }), {
+    status: 405,
+    headers,
+  });
+};
