@@ -15,20 +15,59 @@ const FRUSTRATED_DECAY_SEC = 240;    // 4 minutes (240s) of frustration penalty 
 const SURGE_REWARD = 250000;         // $250k grant for fulfilling active surge
 const FRUSTRATION_LOST_PER_MIN = 12; // 12 lost passengers per minute per unserved surge city
 
+const VIP_EVENTS = {
+  seattle: { title: "Tech Summit in Seattle" },
+  nyc: { title: "Fashion Week in New York" },
+  chicago: { title: "Lollapalooza in Chicago" },
+  la: { title: "Film Premiere in Los Angeles" },
+  dc: { title: "Policy Summit in Washington DC" },
+  miami: { title: "Art Basel in Miami" },
+  boston: { title: "Marathon Day in Boston" },
+  vegas: { title: "Global Expo in Las Vegas" },
+  sf: { title: "AI World Expo in San Francisco" },
+  dallas: { title: "Energy Conference in Dallas" },
+  houston: { title: "Space & Tech Expo in Houston" },
+  atlanta: { title: "Music & Culture Fest in Atlanta" },
+};
+
+function getVipEventTitle(nodeId, nodeName) {
+  if (VIP_EVENTS[nodeId]) return VIP_EVENTS[nodeId].title;
+  const templates = [
+    `${nodeName} Regional Trade Expo`,
+    `${nodeName} Cultural Festival`,
+    `${nodeName} Sports Championship`,
+    `${nodeName} Music Festival`,
+  ];
+  let hash = 0;
+  for (let i = 0; i < nodeId.length; i++) hash = (hash << 5) - hash + nodeId.charCodeAt(i);
+  return templates[Math.abs(hash) % templates.length];
+}
+
+function getRandomVipIntervalSec() {
+  // VIP surges spaced out 15 to 30 sim-minutes apart (900s - 1800s)
+  return 900 + Math.random() * 900;
+}
+
+const VIP_SURGE_DURATION_SEC = 120;
+const VIP_SURGE_REWARD = 350000; // $350k grant for fulfilling VIP surge
+
 export function updateSurges(state, dt) {
   if (!isSurvivalMode(state) || state.gameOver) return;
 
   if (!state.surgeState) {
     state.surgeState = {
       nextSurgeTime: 120 + Math.random() * 120, // First surge arrives between 2 to 4 sim-minutes
+      nextVipSurgeTime: 900 + Math.random() * 900, // First VIP surge between 15 to 30 sim-minutes
       surges: {},
       abandonedNodes: {},
       abandonedCount: 0,
+      vipSurge: null,
     };
   }
 
   const ss = state.surgeState;
   if (!ss.abandonedNodes) ss.abandonedNodes = {};
+  if (!ss.nextVipSurgeTime) ss.nextVipSurgeTime = state.simTime + (900 + Math.random() * 900);
   const currentMap = state.currentMap || "usa";
   const ms = state.maps[currentMap];
   if (!ms) return;
@@ -180,6 +219,83 @@ export function updateSurges(state, dt) {
         node.surgeFrustrated = false;
         node.surgeAbandoned = true;
         delete ss.surges[nodeId];
+      }
+    }
+  }
+
+  // 3. Process VIP Passenger Surges (strictly on unlocked & connected stations)
+  if (state.simTime >= ss.nextVipSurgeTime && !ss.vipSurge) {
+    ss.nextVipSurgeTime = state.simTime + getRandomVipIntervalSec();
+
+    const connectedCandidates = Object.values(ms.nodes).filter(
+      (n) => n.station && serviceReachableStations(state, currentMap, n.id).length > 0 && !n.surgeActive && !n.surgeFrustrated && !n.vipSurgeActive
+    );
+
+    if (connectedCandidates.length > 0) {
+      const picked = connectedCandidates[Math.floor(Math.random() * connectedCandidates.length)];
+      const title = getVipEventTitle(picked.id, picked.name);
+
+      ss.vipSurge = {
+        nodeId: picked.id,
+        mapKey: currentMap,
+        timer: VIP_SURGE_DURATION_SEC,
+        title,
+        name: picked.name,
+      };
+
+      picked.vipSurgeActive = true;
+      picked.vipSurgeTimer = VIP_SURGE_DURATION_SEC;
+      picked.vipEventTitle = title;
+      picked.vipHadCrowding = false;
+
+      const vipNodeId = picked.id;
+      const vipMapKey = currentMap;
+
+      emit("toast", {
+        msg: `🌟 VIP SURGE: ${title} — 4.0× demand for 120s!`,
+        kind: "good",
+        key: `vip-surge:${picked.id}`,
+        action: {
+          label: "View City",
+          onClick: () => window.game?.panToNode(vipNodeId, vipMapKey),
+        },
+      });
+    }
+  }
+
+  // Active VIP Surge processing
+  if (ss.vipSurge) {
+    const vipNodeMap = state.maps[ss.vipSurge.mapKey];
+    const vipNode = vipNodeMap?.nodes[ss.vipSurge.nodeId];
+
+    if (!vipNode) {
+      ss.vipSurge = null;
+    } else {
+      ss.vipSurge.timer -= dt;
+      vipNode.vipSurgeTimer = Math.max(0, Math.ceil(ss.vipSurge.timer));
+
+      if (vipNode.crowded) {
+        vipNode.vipHadCrowding = true;
+      }
+
+      if (ss.vipSurge.timer <= 0) {
+        if (!vipNode.vipHadCrowding) {
+          state.cash += VIP_SURGE_REWARD;
+          emit("toast", {
+            msg: `🌟 VIP SURGE FULFILLED! ${vipNode.name} serviced — +${fmtMoney(VIP_SURGE_REWARD)} grant!`,
+            kind: "good",
+            key: `vip-fulfilled:${vipNode.id}`,
+          });
+        } else {
+          emit("toast", {
+            msg: `⚠️ VIP SURGE ENDED! ${vipNode.name} experienced station overcrowding during event.`,
+            kind: "bad",
+            key: `vip-ended:${vipNode.id}`,
+          });
+        }
+        vipNode.vipSurgeActive = false;
+        vipNode.vipEventTitle = "";
+        ss.vipSurge = null;
       }
     }
   }

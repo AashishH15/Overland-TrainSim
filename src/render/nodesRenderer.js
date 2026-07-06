@@ -55,11 +55,13 @@ export class NodesRenderer {
 
     const color = this.nodeColor(node);
     const demandR = (0.55 + node.demand * 0.05) * s;
-    const surgeTag = node.surgeActive
-      ? `🔥 DEMAND SURGE`
-      : node.surgeFrustrated
-        ? `⚠️ +12 LOST/MIN`
-        : "";
+    const surgeTag = node.vipSurgeActive
+      ? `🌟 VIP SURGE`
+      : node.surgeActive
+        ? `🔥 DEMAND SURGE`
+        : node.surgeFrustrated
+          ? `⚠️ +12 LOST/MIN`
+          : "";
 
     // Pulsing 3D surge beacon ring around node ground
     const surgeBeacon = new THREE.Mesh(
@@ -167,11 +169,13 @@ export class NodesRenderer {
       const m = this.meshes[node.id];
       if (!m) continue;
 
-      const currentSurgeTag = node.surgeActive
-        ? `🔥 DEMAND SURGE`
-        : node.surgeFrustrated
-          ? `⚠️ +12 LOST/MIN`
-          : "";
+      const currentSurgeTag = node.vipSurgeActive
+        ? `🌟 VIP SURGE`
+        : node.surgeActive
+          ? `🔥 DEMAND SURGE`
+          : node.surgeFrustrated
+            ? `⚠️ +12 LOST/MIN`
+            : "";
 
       if (m.surgeTagKey !== currentSurgeTag) {
         this.rebuildNode(node);
@@ -179,7 +183,12 @@ export class NodesRenderer {
       }
 
       if (m.surgeBeacon) {
-        if (node.surgeActive) {
+        if (node.vipSurgeActive) {
+          m.surgeBeacon.visible = true;
+          const p = 1.35 + 0.35 * Math.sin(Date.now() * 0.011);
+          m.surgeBeacon.scale.set(p, p, 1);
+          m.surgeBeacon.material.color.setHex(0xeab308);
+        } else if (node.surgeActive) {
           m.surgeBeacon.visible = true;
           const p = 1.35 + 0.35 * Math.sin(Date.now() * 0.009);
           m.surgeBeacon.scale.set(p, p, 1);

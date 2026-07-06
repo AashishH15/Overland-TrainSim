@@ -51,6 +51,9 @@ export class Inspector {
         ? "On your network · no station yet"
         : "Outside your network";
     const abandonedItem = s.surgeState?.abandonedNodes?.[node.id];
+    const vipStatus = node.vipSurgeActive
+      ? [`🌟 ${node.vipEventTitle || "VIP Event"} (${node.vipSurgeTimer || 0}s · 4.0× demand)`, "good"]
+      : null;
     const surgeStatus = node.surgeActive
       ? [`🔥 Active (${node.surgeTimer || 0}s)`, "warn"]
       : node.surgeFrustrated
@@ -63,6 +66,7 @@ export class Inspector {
 
     const rows = [
       ["Status", status],
+      vipStatus ? ["VIP Event", vipStatus[0], vipStatus[1]] : null,
       surgeStatus ? ["Demand Surge", surgeStatus[0], surgeStatus[1]] : null,
       ["Demand", formatDemandStat(node, s)],
       node.pop ? ["Metro pop.", `${node.pop}M (rank ${node.rank})`] : null,

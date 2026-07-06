@@ -56,7 +56,8 @@ export function demandGrowthMultiplier(node, state) {
 // A station's real-time demand: base demand grown by elapsed time and by
 // how much ridership it has actually delivered.
 export function effectiveDemand(node, state) {
-  return node.demand * demandGrowthMultiplier(node, state);
+  const vipMult = node.vipSurgeActive ? 4.0 : 1.0;
+  return node.demand * demandGrowthMultiplier(node, state) * vipMult;
 }
 
 /** Player-facing demand line for the inspector. */
