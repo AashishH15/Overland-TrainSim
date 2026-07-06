@@ -12,7 +12,8 @@
     content="Build stations, lay track, and run a profitable rail network across the USA and New York City." />
   <script>
     if (window.location.hostname.includes("github.io")) {
-      window.location.replace("https://overlandgame.netlify.app" + window.location.pathname.replace(/^\/3DTrainSim/, "") + window.location.search + window.location.hash);
+      const path = window.location.pathname.replace(/^\/(?:3DTrainSim|Overland-TrainSim)(?=\/|$)/, "");
+      window.location.replace("https://overlandgame.netlify.app" + path + window.location.search + window.location.hash);
     }
   </script>
   <meta property="og:image" content="https://overlandgame.netlify.app/overland-og.png" />
