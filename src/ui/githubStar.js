@@ -1,7 +1,7 @@
 import { icon } from "./icons.js";
 
 const REPO = "aashishh15/3DTrainSim";
-const REPO_URL = `https://github.com/${REPO}`;
+export const REPO_URL = `https://github.com/${REPO}`;
 
 function fmtStarCount(n) {
   if (n >= 10_000) return `${Math.round(n / 1000)}k`;
@@ -9,12 +9,13 @@ function fmtStarCount(n) {
   return String(n);
 }
 
-async function loadStarCount(el) {
+export async function loadStarCount(el) {
   try {
     const res = await fetch(`https://api.github.com/repos/${REPO}`);
     if (!res.ok) return;
     const data = await res.json();
     if (typeof data.stargazers_count === "number") {
+      el.dataset.count = String(data.stargazers_count);
       el.textContent = fmtStarCount(data.stargazers_count);
     }
   } catch {

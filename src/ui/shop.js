@@ -8,6 +8,7 @@ import { getSavedHandle, submitLeaderboardScore } from "../core/leaderboard.js";
 import { openLeaderboardModal } from "./leaderboardModal.js";
 import { icon } from "./icons.js";
 import { shareModalActions, bindShareAction } from "./share.js";
+import { REPO_URL, loadStarCount } from "./githubStar.js";
 
 export function openModePicker(game, onPick) {
   const backdrop = document.createElement("div");
@@ -273,7 +274,11 @@ export function openIntro(game, { firstRun = false } = {}) {
       </div>
       <div class="modal-footer">
         <button class="btn quiet" data-report-bug>${icon("bug")} Report bug</button>
-        <a class="btn quiet" href="https://github.com/aashishh15/3DTrainSim" target="_blank" rel="noopener noreferrer">${icon("github")} Star on GitHub</a>
+        <a class="btn quiet github-modal-star" href="${REPO_URL}" target="_blank" rel="noopener noreferrer">
+          ${icon("github")}
+          <span>Star on GitHub</span>
+          <span class="github-star-count" hidden>${icon("star", "github-star-icon")}<span class="github-star-n">-</span></span>
+        </a>
         <button class="btn primary" data-close>${firstRun ? "Start building" : "Got it"}</button>
       </div>
     </div>
@@ -284,5 +289,12 @@ export function openIntro(game, { firstRun = false } = {}) {
   backdrop.querySelector("[data-close]").addEventListener("click", close);
   backdrop.querySelector("[data-report-bug]")?.addEventListener("click", () => {
     game.reportBug();
+  });
+  const starCount = backdrop.querySelector(".github-star-count");
+  const starNumber = backdrop.querySelector(".github-star-n");
+  loadStarCount(starNumber).then(() => {
+    if (starCount && Number(starNumber?.dataset.count || 0) >= 10) {
+      starCount.hidden = false;
+    }
   });
 }

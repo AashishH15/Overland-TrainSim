@@ -174,7 +174,13 @@ body {
   color: var(--ink-2);
   font-variant-numeric: tabular-nums;
 }
+.github-star-count[hidden] { display: none !important; }
 .github-star-icon { color: #e8b829; width: 0.95em; height: 0.95em; }
+.github-modal-star { gap: 0.4rem; }
+.github-modal-star .github-star-count {
+  padding-left: 0.2rem;
+  color: var(--ink-2);
+}
 
 /* ---------- Toolbar ---------- */
 .toolbar {
