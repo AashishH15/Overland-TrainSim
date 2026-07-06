@@ -45,10 +45,16 @@ export function updateSurges(state, dt) {
       picked.surgeTimer = SURGE_DURATION_SEC;
       picked.surgeFrustrated = false;
 
+      const surgeNodeId = picked.id;
+      const surgeMapKey = currentMap;
       emit("toast", {
         msg: `🔥 DEMAND SURGE: ${picked.name} demands transit connection within 120s!`,
         kind: "bad",
         key: `surge:${picked.id}`,
+        action: {
+          label: "View City",
+          onClick: () => window.game?.panToNode(surgeNodeId, surgeMapKey),
+        },
       });
     }
   }
@@ -98,10 +104,16 @@ export function updateSurges(state, dt) {
         node.surgeActive = false;
         node.surgeFrustrated = true;
 
+        const expiredNodeId = nodeId;
+        const expiredMapKey = surge.mapKey;
         emit("toast", {
           msg: `⚠️ SURGE EXPIRED! Citizens in ${node.name} are frustrated (+${FRUSTRATION_LOST_PER_MIN} Lost/min)!`,
           kind: "bad",
           key: `surge-expired:${nodeId}`,
+          action: {
+            label: "View City",
+            onClick: () => window.game?.panToNode(expiredNodeId, expiredMapKey),
+          },
         });
       }
     } else {

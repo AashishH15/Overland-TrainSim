@@ -529,6 +529,18 @@ export class Game {
 
   openShop() { openShopModal(this); }
 
+  panToNode(nodeId, mapKey = this.state.currentMap) {
+    if (this.state.currentMap !== mapKey) this.switchMap(mapKey);
+    const node = this.state.maps[mapKey]?.nodes[nodeId];
+    if (!node) return;
+    const b = this.activeBundle;
+    if (!b) return;
+    b.controls.target.set(node.x, 0, node.z);
+    b.camera.position.set(node.x, b.camera.position.y, node.z + 80);
+    b.controls.update();
+    this.selectNode(nodeId);
+  }
+
   // ================= input & picking =================
 
   bindInput() {

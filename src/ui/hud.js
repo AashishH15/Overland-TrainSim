@@ -19,7 +19,7 @@ export class Hud {
     this.buildHintbar();
     this.buildToasts();
     this.buildFleet();
-    on("toast", (t) => this.toast(t.msg, t.kind, t.key));
+    on("toast", (t) => this.toast(t.msg, t.kind, t.key, t.action));
     setInterval(() => this.refresh(), 250);
     this.syncModeUi();
   }
@@ -208,7 +208,7 @@ export class Hud {
     this.root.appendChild(this.toasts);
   }
 
-  toast(msg, kind = "", key = "") {
+  toast(msg, kind = "", key = "", action = null) {
     if (key) {
       for (const existing of this.toasts.children) {
         if (existing.dataset.toastKey === key) return;
@@ -219,9 +219,23 @@ export class Hud {
     if (key) t.dataset.toastKey = key;
     const glyph = kind === "good" ? "check" : kind === "bad" ? "close" : "info";
     t.innerHTML = `${icon(glyph)}<span></span>`;
-    t.lastChild.textContent = msg;
+    t.querySelector("span").textContent = msg;
+
+    if (action) {
+      const btn = document.createElement("button");
+      btn.className = "btn small primary";
+      btn.style.cssText = "margin-left:auto; padding:0.18rem 0.5rem; font-size:0.72rem; min-height:1.5rem;";
+      btn.textContent = action.label || "View";
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        action.onClick?.();
+        t.remove();
+      });
+      t.appendChild(btn);
+    }
+
     this.toasts.appendChild(t);
-    setTimeout(() => t.remove(), 3400);
+    setTimeout(() => t.remove(), 4500);
     while (this.toasts.children.length > 3) this.toasts.firstChild.remove();
   }
 

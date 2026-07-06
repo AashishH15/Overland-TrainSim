@@ -43,7 +43,6 @@ export class NodesRenderer {
     const status = this.statusOf(node);
     const existing = this.meshes[node.id];
     if (existing) {
-      if (existing.status === status) return;
       this.bundle.pickables.remove(existing.group);
       existing.group.traverse((o) => { o.geometry?.dispose(); });
     }
@@ -56,6 +55,23 @@ export class NodesRenderer {
 
     const color = this.nodeColor(node);
     const demandR = (0.55 + node.demand * 0.05) * s;
+    const surgeTag = node.surgeActive
+      ? `🔥 ${node.surgeTimer || 0}s`
+      : node.surgeFrustrated
+        ? `⚠️ +12 LOST/MIN`
+        : "";
+
+    // Pulsing 3D surge beacon ring around node ground
+    const surgeBeacon = new THREE.Mesh(
+      new THREE.TorusGeometry(demandR * 1.6, 0.16 * s, 8, 24),
+      new THREE.MeshBasicMaterial({ color: 0xea580c, transparent: true, opacity: 0.85 })
+    );
+    surgeBeacon.rotation.x = Math.PI / 2;
+    surgeBeacon.position.y = 0.06 * s;
+    surgeBeacon.visible = Boolean(surgeTag);
+    group.add(surgeBeacon);
+
+    let stationRing = null;
 
     if (status === "locked") {
       const dot = new THREE.Mesh(
@@ -64,7 +80,7 @@ export class NodesRenderer {
       );
       dot.position.y = 0.09 * s;
       group.add(dot);
-      const lock = this.tagLabel(makeLabel(node.name, { size: this.cfg.labelSize * 0.8, color: "#aab4c2", lock: true }));
+      const lock = this.tagLabel(makeLabel(node.name, { size: this.cfg.labelSize * 0.8, color: "#aab4c2", lock: true, surgeTag }));
       lock.position.y = 1.6 * s;
       group.add(lock);
     } else if (status === "unlocked") {
@@ -81,12 +97,11 @@ export class NodesRenderer {
       );
       dot.position.y = 0.07 * s;
       group.add(dot);
-      const label = this.tagLabel(makeLabel(node.name, { size: this.cfg.labelSize * 0.85, color: "#dfe6ee" }));
+      const label = this.tagLabel(makeLabel(node.name, { size: this.cfg.labelSize * 0.85, color: "#dfe6ee", surgeTag }));
       label.position.y = 1.7 * s;
       group.add(label);
     } else {
       // Full station: platform disc + tiny depot + colored ring.
-      let stationRing = null;
       const base = new THREE.Mesh(
         new THREE.CylinderGeometry(demandR, demandR * 1.12, 0.3 * s, 12),
         new THREE.MeshLambertMaterial({ color: 0xf2f5f8 })
@@ -117,7 +132,7 @@ export class NodesRenderer {
       roof.rotation.y = Math.PI / 4;
       roof.position.set(demandR * 0.75, 0.98 * s, -demandR * 0.75);
       group.add(roof);
-      const label = this.tagLabel(makeLabel(node.name, { size: this.cfg.labelSize, color: "#ffffff" }));
+      const label = this.tagLabel(makeLabel(node.name, { size: this.cfg.labelSize, color: "#ffffff", surgeTag }));
       label.position.y = 2.0 * s;
       group.add(label);
 
@@ -130,18 +145,6 @@ export class NodesRenderer {
       wait.visible = false;
       group.add(wait);
       group.userData.waitBar = wait;
-
-      const pick = new THREE.Mesh(
-        new THREE.CylinderGeometry(Math.max(demandR * 1.6, 1.6 * s), Math.max(demandR * 1.6, 1.6 * s), 2.4 * s, 8),
-        new THREE.MeshBasicMaterial({ visible: false })
-      );
-      pick.position.y = 0.6 * s;
-      pick.userData = group.userData;
-      group.add(pick);
-
-      this.bundle.pickables.add(group);
-      this.meshes[node.id] = { group, status, ring: stationRing };
-      return;
     }
 
     // Invisible fat pick cylinder so clicking is easy.
@@ -154,15 +157,43 @@ export class NodesRenderer {
     group.add(pick);
 
     this.bundle.pickables.add(group);
-    this.meshes[node.id] = { group, status, ring: null };
+    this.meshes[node.id] = { group, status, ring: stationRing, surgeBeacon, surgeTagKey: surgeTag };
   }
 
-  // Called every frame: grows the waiting bar with queued passengers.
+  // Called every frame: grows the waiting bar with queued passengers and updates surge indicators.
   update() {
     const z = zoomScale(this.bundle.camera, this.bundle.controls.target, this.mapKey);
     for (const node of Object.values(this.state.maps[this.mapKey].nodes)) {
       const m = this.meshes[node.id];
       if (!m) continue;
+
+      const currentSurgeTag = node.surgeActive
+        ? `🔥 ${node.surgeTimer || 0}s`
+        : node.surgeFrustrated
+          ? `⚠️ +12 LOST/MIN`
+          : "";
+
+      if (m.surgeTagKey !== currentSurgeTag) {
+        this.rebuildNode(node);
+        continue;
+      }
+
+      if (m.surgeBeacon) {
+        if (node.surgeActive) {
+          m.surgeBeacon.visible = true;
+          const p = 1.35 + 0.35 * Math.sin(Date.now() * 0.009);
+          m.surgeBeacon.scale.set(p, p, 1);
+          m.surgeBeacon.material.color.setHex(0xea580c);
+        } else if (node.surgeFrustrated) {
+          m.surgeBeacon.visible = true;
+          const p = 1.35 + 0.35 * Math.sin(Date.now() * 0.014);
+          m.surgeBeacon.scale.set(p, p, 1);
+          m.surgeBeacon.material.color.setHex(0xd93838);
+        } else {
+          m.surgeBeacon.visible = false;
+        }
+      }
+
       m.group.traverse((o) => {
         if (o.userData?.labelBase) {
           o.scale.set(o.userData.labelBase.x * z, o.userData.labelBase.y * z, 1);
