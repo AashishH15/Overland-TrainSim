@@ -9,7 +9,8 @@ export function createRenderer() {
     preserveDrawingBuffer: true,
   });
   const cap = isMobileExperience() ? 1.5 : 2;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, cap));
+  const dpr = Math.max(1.5, Math.min(window.devicePixelRatio || 1, cap));
+  renderer.setPixelRatio(dpr);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;

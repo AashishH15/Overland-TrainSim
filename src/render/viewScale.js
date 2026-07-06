@@ -8,7 +8,7 @@ const REF_DIST = { usa: 130, nyc: 58 };
 export function zoomScale(camera, target, mapKey) {
   const dist = camera.position.distanceTo(target);
   const ref = REF_DIST[mapKey] ?? 100;
-  return THREE.MathUtils.clamp(dist / ref, 0.18, 1.05);
+  return THREE.MathUtils.clamp(dist / ref, 0.35, 1.15);
 }
 
 // Gentle adjustment for small/large viewports (HUD already scales via rem).
