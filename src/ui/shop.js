@@ -47,8 +47,12 @@ export function openModePicker(game, onPick) {
 }
 
 export function openShop(game) {
+  // Prevent opening multiple shop modals
+  if (document.querySelector(".shop-backdrop")) return;
+
   const backdrop = document.createElement("div");
-  backdrop.className = "modal-backdrop";
+  backdrop.className = "modal-backdrop shop-backdrop";
+  backdrop.style.zIndex = "200";
   const mapKey = game.state.currentMap;
 
   const cards = Object.values(TIERS).map((t) => `

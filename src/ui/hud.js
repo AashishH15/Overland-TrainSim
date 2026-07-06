@@ -10,6 +10,9 @@ export class Hud {
   constructor(game) {
     this.game = game;
     this.root = document.getElementById("hud");
+    this.topHud = document.createElement("div");
+    this.topHud.className = "top-hud";
+    this.root.appendChild(this.topHud);
     this.buildTopbar();
     this.buildGoalsStrip();
     this.buildToolbar();
@@ -84,7 +87,7 @@ export class Hud {
         <button class="btn quiet small danger" id="hud-newgame" title="Start over">${icon("restart")}</button>
       </div>
     `;
-    this.root.appendChild(el);
+    this.topHud.appendChild(el);
     el.querySelectorAll("[data-speed]").forEach((b) =>
       b.addEventListener("click", () => { this.game.state.speed = +b.dataset.speed; })
     );
@@ -112,7 +115,7 @@ export class Hud {
     this.goalsStrip = document.createElement("div");
     this.goalsStrip.className = "goals-strip";
     this.goalsStrip.addEventListener("click", () => this.game.openGoals());
-    this.root.appendChild(this.goalsStrip);
+    this.topHud.appendChild(this.goalsStrip);
     this.refreshGoals();
   }
 

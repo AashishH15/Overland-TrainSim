@@ -22,7 +22,7 @@ async function loadStarCount(el) {
   }
 }
 
-/** Top-corner “Star on GitHub” pill with live star count. */
+/** Top-corner "Star on GitHub" pill with live star count. */
 export function mountGithubStar(root) {
   root.querySelectorAll(".github-star").forEach((node) => node.remove());
 
@@ -43,7 +43,6 @@ export function mountGithubStar(root) {
 
   let opening = false;
   el.addEventListener("click", (e) => {
-    // Middle-click / modified clicks keep native “open in new tab” behavior.
     if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     e.preventDefault();
     if (opening) return;
