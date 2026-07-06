@@ -4,7 +4,11 @@ import { noteSurvivalLost } from "../core/survivalBadges.js";
 import { emit } from "../core/bus.js";
 import { fmtMoney } from "../core/config.js";
 
-const SURGE_INTERVAL_SEC = 210; // New surge every ~3.5 sim-minutes
+function getRandomSurgeIntervalSec() {
+  // Random surge interval between 2 minutes (120s) and 10 minutes (600s)
+  return 120 + Math.random() * 480;
+}
+
 const SURGE_DURATION_SEC = 120; // 120 seconds to connect
 const SURGE_REWARD = 250000;    // $250k grant for fulfilling surge
 const FRUSTRATION_LOST_PER_MIN = 12; // 12 lost passengers per minute per unserved surge city
@@ -14,7 +18,7 @@ export function updateSurges(state, dt) {
 
   if (!state.surgeState) {
     state.surgeState = {
-      nextSurgeTime: 120, // First surge arrives at 2 sim-minutes
+      nextSurgeTime: 120 + Math.random() * 120, // First surge arrives between 2 to 4 sim-minutes
       surges: {},
     };
   }
@@ -26,7 +30,7 @@ export function updateSurges(state, dt) {
 
   // 1. Check if it's time to spawn a new surge
   if (state.simTime >= ss.nextSurgeTime) {
-    ss.nextSurgeTime = state.simTime + SURGE_INTERVAL_SEC;
+    ss.nextSurgeTime = state.simTime + getRandomSurgeIntervalSec();
 
     // Pick a random unbuilt node that doesn't currently have an active surge
     const candidateNodes = Object.values(ms.nodes).filter(

@@ -218,13 +218,12 @@ export class Hud {
     t.className = `toast ${kind}`;
     if (key) t.dataset.toastKey = key;
     const glyph = kind === "good" ? "check" : kind === "bad" ? "close" : "info";
-    t.innerHTML = `${icon(glyph)}<span></span>`;
-    t.querySelector("span").textContent = msg;
+    t.innerHTML = `${icon(glyph)}<div class="toast-content"></div>`;
+    t.querySelector(".toast-content").textContent = msg;
 
     if (action) {
       const btn = document.createElement("button");
-      btn.className = "btn small primary";
-      btn.style.cssText = "margin-left:auto; padding:0.18rem 0.5rem; font-size:0.72rem; min-height:1.5rem;";
+      btn.className = "btn small primary toast-action";
       btn.textContent = action.label || "View";
       btn.addEventListener("click", (e) => {
         e.stopPropagation();

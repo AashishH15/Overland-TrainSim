@@ -382,17 +382,29 @@ body {
 /* ---------- Toasts ---------- */
 .toasts {
   position: absolute; bottom: 5.5rem; left: 50%; transform: translateX(-50%);
-  display: flex; flex-direction: column; gap: 0.4rem; align-items: center;
+  display: flex; flex-direction: column; gap: 0.45rem; align-items: center;
+  pointer-events: none; z-index: 20; width: min(34rem, 92vw);
 }
 .toast {
+  pointer-events: auto;
   background: var(--panel); border: 1px solid var(--line);
-  padding: 0.55rem 1rem; border-radius: 999px; font-size: 0.82rem;
+  padding: 0.55rem 0.95rem; border-radius: var(--r-md); font-size: 0.82rem;
   box-shadow: var(--shadow); animation: toast-in 0.18s ease-out;
-  display: flex; align-items: center; gap: 0.5rem;
+  display: flex; align-items: center; gap: 0.6rem;
+  width: 100%; box-sizing: border-box;
 }
-.toast .icon { color: var(--ink-3); }
+.toast .icon { color: var(--ink-3); flex-shrink: 0; font-size: 1.05rem; }
 .toast.good .icon { color: var(--good); }
 .toast.bad .icon { color: var(--bad); }
+.toast-content {
+  flex: 1; min-width: 0; line-height: 1.35; color: var(--ink);
+  white-space: normal; word-break: break-word;
+}
+.toast-action {
+  flex-shrink: 0; margin-left: 0.5rem; font-size: 0.72rem;
+  padding: 0.22rem 0.55rem; min-height: 1.6rem; border-radius: var(--r-sm);
+  white-space: nowrap;
+}
 @keyframes toast-in { from { opacity: 0; transform: translateY(0.5rem); } }
 @keyframes fade-in { from { opacity: 0; } }
 
