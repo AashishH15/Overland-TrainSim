@@ -306,6 +306,34 @@ function handleStop(state, train, nodeId) {
     train.revenueTotal += revenue;
     state.incomeWindow.push([state.simTime, revenue]);
     emit("delivered", { train, node, delivered, revenue });
+
+    // Incremental strike redemption: every 500 passengers delivered to a connected abandoned node drops penalty by -1
+    const abandonedItem = state.surgeState?.abandonedNodes?.[nodeId];
+    if (abandonedItem && abandonedItem.connected) {
+      abandonedItem.delivered += delivered;
+      while (abandonedItem.delivered >= 500 && abandonedItem.penalty > 0) {
+        abandonedItem.delivered -= 500;
+        abandonedItem.penalty -= 1;
+        if (abandonedItem.penalty > 0) {
+          emit("toast", {
+            msg: `📉 ${abandonedItem.name} trust restoring! Penalty reduced to +${abandonedItem.penalty} Lost/min.`,
+            kind: "good",
+            key: `surge-trust:${nodeId}:${abandonedItem.penalty}`,
+          });
+        } else {
+          delete state.surgeState.abandonedNodes[nodeId];
+          state.surgeState.abandonedCount = Object.keys(state.surgeState.abandonedNodes).length;
+          node.surgeRedeeming = false;
+          node.surgeAbandoned = false;
+          emit("toast", {
+            msg: `🎉 ${abandonedItem.name} fully redeemed! Abandoned strike cleared.`,
+            kind: "good",
+            key: `surge-redeemed:${nodeId}`,
+          });
+          break;
+        }
+      }
+    }
   }
 
   // Board waiting groups if this train can carry them (direct or first leg of a connection).
@@ -337,13 +365,19 @@ export function incomePerMin(state) {
   return state.incomeWindow.reduce((s, [, v]) => s + v, 0);
 }
 
-// Rolling riders lost per minute (trailing window + permanent floor from abandoned surges).
+export function getTotalAbandonedPenalty(state) {
+  const ss = state.surgeState;
+  if (!ss || !ss.abandonedNodes) return 0;
+  return Object.values(ss.abandonedNodes).reduce((sum, item) => sum + (item.penalty || 0), 0);
+}
+
+// Rolling riders lost per minute (trailing window + penalty floor from abandoned surges).
 export function lostRatePerMin(state) {
   const { lostWindowSec } = getPressureConfig(state);
   const cutoff = state.simTime - lostWindowSec;
   state.lostWindow = state.lostWindow.filter(([t]) => t >= cutoff);
   const rolling = state.lostWindow.reduce((s, [, v]) => s + v, 0);
-  const permanentFloor = (state.surgeState?.abandonedCount || 0) * 4;
+  const permanentFloor = getTotalAbandonedPenalty(state);
   return Math.round(rolling + permanentFloor);
 }
 

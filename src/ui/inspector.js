@@ -50,12 +50,15 @@ export class Inspector {
       : onNetwork
         ? "On your network · no station yet"
         : "Outside your network";
+    const abandonedItem = s.surgeState?.abandonedNodes?.[node.id];
     const surgeStatus = node.surgeActive
       ? [`🔥 Active (${node.surgeTimer || 0}s)`, "warn"]
       : node.surgeFrustrated
         ? [`⚠️ Frustrated (+12 Lost/min · ${node.frustrationTimer || 0}s left)`, "crowded"]
-        : node.surgeAbandoned
-          ? ["❌ Abandoned (+4 Lost/min permanent floor)", "crowded"]
+        : abandonedItem
+          ? abandonedItem.connected
+            ? [`🔄 Restoring (+${abandonedItem.penalty} Lost/min · ${abandonedItem.delivered}/500 pax)`, "warn"]
+            : [`❌ Abandoned (+${abandonedItem.penalty} Lost/min penalty)`, "crowded"]
           : null;
 
     const rows = [

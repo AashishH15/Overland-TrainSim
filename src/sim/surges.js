@@ -22,10 +22,13 @@ export function updateSurges(state, dt) {
     state.surgeState = {
       nextSurgeTime: 120 + Math.random() * 120, // First surge arrives between 2 to 4 sim-minutes
       surges: {},
+      abandonedNodes: {},
+      abandonedCount: 0,
     };
   }
 
   const ss = state.surgeState;
+  if (!ss.abandonedNodes) ss.abandonedNodes = {};
   const currentMap = state.currentMap || "usa";
   const ms = state.maps[currentMap];
   if (!ms) return;
@@ -36,9 +39,9 @@ export function updateSurges(state, dt) {
 
     const activeSurgeCount = Object.keys(ss.surges).length;
     if (activeSurgeCount < MAX_CONCURRENT_SURGES) {
-      // Pick a random unbuilt node that doesn't currently have an active surge
+      // Pick a random unbuilt node that doesn't currently have an active surge or pending strike
       const candidateNodes = Object.values(ms.nodes).filter(
-        (n) => !n.station && !ss.surges[n.id]
+        (n) => !n.station && !ss.surges[n.id] && !ss.abandonedNodes[n.id]
       );
 
       if (candidateNodes.length > 0) {
@@ -66,6 +69,27 @@ export function updateSurges(state, dt) {
           },
         });
       }
+    }
+  }
+
+  // Check for reconnection of previously abandoned nodes to trigger redemption mode
+  for (const [nodeId, item] of Object.entries(ss.abandonedNodes)) {
+    const nodeMap = state.maps[item.mapKey || currentMap];
+    const node = nodeMap?.nodes[nodeId];
+    if (!node) continue;
+
+    const isConnected =
+      node.station && serviceReachableStations(state, item.mapKey || currentMap, nodeId).length > 0;
+
+    if (isConnected && !item.connected) {
+      item.connected = true;
+      node.surgeAbandoned = false;
+      node.surgeRedeeming = true;
+      emit("toast", {
+        msg: `✅ ${node.name} connected! Delivering passengers will restore trust (500 pax per -1 Lost/min penalty).`,
+        kind: "good",
+        key: `surge-reconnect:${nodeId}`,
+      });
     }
   }
 
@@ -138,9 +162,17 @@ export function updateSurges(state, dt) {
 
       // If frustration decay timer expires (4 minutes): citizens give up and surge is abandoned
       if (surge.frustrationTimer <= 0) {
-        ss.abandonedCount = (ss.abandonedCount || 0) + 1;
+        ss.abandonedNodes[nodeId] = {
+          penalty: 4,
+          delivered: 0,
+          connected: false,
+          name: node.name,
+          mapKey: surge.mapKey,
+        };
+        ss.abandonedCount = Object.keys(ss.abandonedNodes).length;
+
         emit("toast", {
-          msg: `❌ Citizens in ${node.name} gave up! Permanent +4 Lost/min baseline floor added.`,
+          msg: `❌ Citizens in ${node.name} gave up! Strike added (+4 Lost/min penalty).`,
           kind: "bad",
           key: `surge-abandoned:${nodeId}`,
         });
