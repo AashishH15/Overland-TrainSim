@@ -99,7 +99,7 @@ export function updateSurges(state, dt) {
         const surgeNodeId = picked.id;
         const surgeMapKey = currentMap;
         emit("toast", {
-          msg: `🔥 DEMAND SURGE: ${picked.name} demands transit connection within 120s!`,
+          msg: `DEMAND SURGE: ${picked.name} demands transit connection within 120s!`,
           kind: "bad",
           key: `surge:${picked.id}`,
           action: {
@@ -125,7 +125,7 @@ export function updateSurges(state, dt) {
       node.surgeAbandoned = false;
       node.surgeRedeeming = true;
       emit("toast", {
-        msg: `✅ ${node.name} connected! Delivering passengers will restore trust (500 pax per -1 Lost/min penalty).`,
+        msg: `${node.name} connected! Delivering passengers will restore trust (500 pax per -1 Lost/min penalty).`,
         kind: "good",
         key: `surge-reconnect:${nodeId}`,
       });
@@ -150,13 +150,13 @@ export function updateSurges(state, dt) {
       if (!surge.frustrated) {
         state.cash += SURGE_REWARD;
         emit("toast", {
-          msg: `✅ SURGE FULFILLED! ${node.name} connected — +${fmtMoney(SURGE_REWARD)} grant!`,
+          msg: `SURGE FULFILLED! ${node.name} connected — +${fmtMoney(SURGE_REWARD)} grant!`,
           kind: "good",
           key: `surge-fulfilled:${nodeId}`,
         });
       } else {
         emit("toast", {
-          msg: `✅ Transit connected to ${node.name}! Frustration cleared.`,
+          msg: `Transit connected to ${node.name}! Frustration cleared.`,
           kind: "good",
           key: `surge-cleared:${nodeId}`,
         });
@@ -181,7 +181,7 @@ export function updateSurges(state, dt) {
         const expiredNodeId = nodeId;
         const expiredMapKey = surge.mapKey;
         emit("toast", {
-          msg: `⚠️ SURGE EXPIRED! Citizens in ${node.name} are frustrated (+${FRUSTRATION_LOST_PER_MIN} Lost/min)!`,
+          msg: `SURGE EXPIRED! Citizens in ${node.name} are frustrated (+${FRUSTRATION_LOST_PER_MIN} Lost/min)!`,
           kind: "bad",
           key: `surge-expired:${nodeId}`,
           action: {
@@ -211,7 +211,7 @@ export function updateSurges(state, dt) {
         ss.abandonedCount = Object.keys(ss.abandonedNodes).length;
 
         emit("toast", {
-          msg: `❌ Citizens in ${node.name} gave up! Strike added (+5 Lost/min penalty).`,
+          msg: `Citizens in ${node.name} gave up! Strike added (+5 Lost/min penalty).`,
           kind: "bad",
           key: `surge-abandoned:${nodeId}`,
         });
@@ -252,7 +252,7 @@ export function updateSurges(state, dt) {
       const vipMapKey = currentMap;
 
       emit("toast", {
-        msg: `🌟 VIP SURGE: ${title} — 4.0× demand for 120s!`,
+        msg: `VIP SURGE: ${title} — 4.0× demand for 120s!`,
         kind: "good",
         key: `vip-surge:${picked.id}`,
         action: {
@@ -282,13 +282,13 @@ export function updateSurges(state, dt) {
         if (!vipNode.vipHadCrowding) {
           state.cash += VIP_SURGE_REWARD;
           emit("toast", {
-            msg: `🌟 VIP SURGE FULFILLED! ${vipNode.name} serviced — +${fmtMoney(VIP_SURGE_REWARD)} grant!`,
+            msg: `VIP SURGE FULFILLED! ${vipNode.name} serviced — +${fmtMoney(VIP_SURGE_REWARD)} grant!`,
             kind: "good",
             key: `vip-fulfilled:${vipNode.id}`,
           });
         } else {
           emit("toast", {
-            msg: `⚠️ VIP SURGE ENDED! ${vipNode.name} experienced station overcrowding during event.`,
+            msg: `VIP SURGE ENDED! ${vipNode.name} experienced station overcrowding during event.`,
             kind: "bad",
             key: `vip-ended:${vipNode.id}`,
           });

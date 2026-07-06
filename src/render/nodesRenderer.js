@@ -56,11 +56,11 @@ export class NodesRenderer {
     const color = this.nodeColor(node);
     const demandR = (0.55 + node.demand * 0.05) * s;
     const surgeTag = node.vipSurgeActive
-      ? `🌟 VIP SURGE`
+      ? `VIP SURGE`
       : node.surgeActive
-        ? `🔥 DEMAND SURGE`
+        ? `DEMAND SURGE`
         : node.surgeFrustrated
-          ? `⚠️ +12 LOST/MIN`
+          ? `+12 LOST/MIN`
           : "";
 
     // Pulsing 3D surge beacon ring around node ground
@@ -170,11 +170,11 @@ export class NodesRenderer {
       if (!m) continue;
 
       const currentSurgeTag = node.vipSurgeActive
-        ? `🌟 VIP SURGE`
+        ? `VIP SURGE`
         : node.surgeActive
-          ? `🔥 DEMAND SURGE`
+          ? `DEMAND SURGE`
           : node.surgeFrustrated
-            ? `⚠️ +12 LOST/MIN`
+            ? `+12 LOST/MIN`
             : "";
 
       if (m.surgeTagKey !== currentSurgeTag) {

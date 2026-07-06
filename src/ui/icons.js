@@ -26,6 +26,9 @@ import usersThree from "@phosphor-icons/core/assets/bold/users-three-bold.svg?ra
 import shareNetwork from "@phosphor-icons/core/assets/bold/share-network-bold.svg?raw";
 import bug from "@phosphor-icons/core/assets/bold/bug-bold.svg?raw";
 import trophy from "@phosphor-icons/core/assets/bold/trophy-bold.svg?raw";
+import warning from "@phosphor-icons/core/assets/bold/warning-bold.svg?raw";
+import sparkle from "@phosphor-icons/core/assets/bold/sparkle-bold.svg?raw";
+import flame from "@phosphor-icons/core/assets/bold/flame-bold.svg?raw";
 
 const SVGS = {
   github: githubLogo,
@@ -55,6 +58,9 @@ const SVGS = {
   share: shareNetwork,
   bug,
   trophy,
+  warning,
+  sparkle,
+  flame,
 };
 
 // Returns inline-SVG markup wrapped in a sizing span. Color follows currentColor.

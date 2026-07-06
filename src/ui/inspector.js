@@ -52,16 +52,16 @@ export class Inspector {
         : "Outside your network";
     const abandonedItem = s.surgeState?.abandonedNodes?.[node.id];
     const vipStatus = node.vipSurgeActive
-      ? [`🌟 ${node.vipEventTitle || "VIP Event"} (${node.vipSurgeTimer || 0}s · 4.0× demand)`, "good"]
+      ? [`${icon("sparkle")} ${node.vipEventTitle || "VIP Event"} (${node.vipSurgeTimer || 0}s · 4.0× demand)`, "good"]
       : null;
     const surgeStatus = node.surgeActive
-      ? [`🔥 Active (${node.surgeTimer || 0}s)`, "warn"]
+      ? [`${icon("lightning")} Active (${node.surgeTimer || 0}s)`, "warn"]
       : node.surgeFrustrated
-        ? [`⚠️ Frustrated (+12 Lost/min · ${node.frustrationTimer || 0}s left)`, "crowded"]
+        ? [`${icon("warning")} Frustrated (+12 Lost/min · ${node.frustrationTimer || 0}s left)`, "crowded"]
         : abandonedItem
           ? abandonedItem.connected
-            ? [`🔄 Restoring (+${abandonedItem.penalty} Lost/min · ${abandonedItem.delivered}/500 pax)`, "warn"]
-            : [`❌ Abandoned (+${abandonedItem.penalty} Lost/min penalty)`, "crowded"]
+            ? [`${icon("info")} Restoring (+${abandonedItem.penalty} Lost/min · ${abandonedItem.delivered}/500 pax)`, "warn"]
+            : [`${icon("close")} Abandoned (+${abandonedItem.penalty} Lost/min penalty)`, "crowded"]
           : null;
 
     const rows = [
