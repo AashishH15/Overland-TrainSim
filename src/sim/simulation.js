@@ -1,4 +1,4 @@
-import { TIERS, TRACK_TYPES, ECON, SIM, CROWDING, getGameMode, getPressureConfig, networkPressureEnabled, demandElasticity } from "../core/config.js";
+import { TIERS, TRACK_TYPES, ECON, SIM, CROWDING, getGameMode, getPressureConfig, networkPressureEnabled, demandElasticity, getRiderPatienceSec } from "../core/config.js";
 import { shortestPath, cachedDijkstra } from "../core/graph.js";
 import { effectiveDemand, platformCapacity, costMultiplier } from "../core/economy.js";
 import { noteSurvivalLost, noteSurvivalOvercrowding, tickSurvivalRunStats } from "../core/survivalBadges.js";
@@ -130,6 +130,8 @@ function economyTick(state, dt) {
 }
 
 function dropoutPass(state, mapKey, ms, dt) {
+  const patienceSec = getRiderPatienceSec(state, mapKey);
+
   for (const node of Object.values(ms.nodes)) {
     if (!node.station) continue;
     const waitingCount = node.waiting.reduce((s, g) => s + g.count, 0);
@@ -152,7 +154,7 @@ function dropoutPass(state, mapKey, ms, dt) {
     const overflow = waitingCount / Math.max(1, capacity);
     for (const g of node.waiting) {
       const since = g.since ?? state.simTime;
-      if (state.simTime - since < CROWDING.patienceSec) continue;
+      if (state.simTime - since < patienceSec) continue;
       const lost = Math.min(
         g.count,
         Math.round(g.count * CROWDING.dropoutRatePerSec * Math.min(2, overflow) * dt)

@@ -218,6 +218,16 @@ export function demandElasticity(fareMult) {
   return Math.max(0.3, 1 - (fareMult - 1) * PRICING.elasticity);
 }
 
+/** Rider patience in seconds. Higher fare multipliers reduce patience in Survival mode. */
+export function getRiderPatienceSec(state, mapKey) {
+  const basePatience = CROWDING.patienceSec;
+  if (!isSurvivalMode(state)) return basePatience;
+  const ms = state.maps?.[mapKey];
+  const fareMult = ms ? ms.fareMult : 1.0;
+  const mult = 1 + (fareMult - 1) * 1.35;
+  return Math.round(basePatience / mult);
+}
+
 export const fmtMoney = (v) => {
   const sign = v < 0 ? "-" : "";
   v = Math.abs(v);
