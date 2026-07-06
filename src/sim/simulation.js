@@ -52,8 +52,6 @@ function spawnPassengers(state, dt) {
     const ms = state.maps[mapKey];
     for (const node of Object.values(ms.nodes)) {
       if (!node.station) continue;
-      const reachable = serviceReachableStations(state, mapKey, node.id);
-      if (reachable.length === 0) continue;
 
       node.spawnAcc += effectiveDemand(node, state)
         * demandElasticity(ms.fareMult)
@@ -62,6 +60,19 @@ function spawnPassengers(state, dt) {
       const spawn = Math.floor(node.spawnAcc);
       node.spawnAcc -= spawn;
       spawned += spawn;
+
+      const reachable = serviceReachableStations(state, mapKey, node.id);
+      if (reachable.length === 0) {
+        const dest = `isolated:${node.id}`;
+        const existing = node.waiting.find((g) => g.dest === dest);
+        if (existing) {
+          existing.count += spawn;
+          existing.since = Math.min(existing.since ?? state.simTime, state.simTime);
+        } else {
+          node.waiting.push({ count: spawn, dest, fareDist: 0, since: state.simTime });
+        }
+        continue;
+      }
 
       let totalW = 0;
       const weights = reachable.map((r) => {
@@ -181,7 +192,8 @@ function dropoutPass(state, mapKey, ms, dt) {
     if (!node.station) continue;
     const waitingCount = node.waiting.reduce((s, g) => s + g.count, 0);
     const capacity = platformCapacity(mapKey, node, state);
-    node.crowded = waitingCount > capacity;
+    const wasCrowded = !!node.crowded;
+    node.crowded = wasCrowded ? waitingCount > capacity * 0.9 : waitingCount > capacity;
     if (node.crowded) {
       if (!node.crowdedWarned) {
         node.crowdedWarned = true;
