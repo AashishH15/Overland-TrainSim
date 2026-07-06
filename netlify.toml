@@ -7,3 +7,23 @@
   from = "/api/leaderboard"
   to = "/.netlify/functions/leaderboard"
   status = 200
+
+[[redirects]]
+  from = "/Overland-TrainSim/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/Overland-TrainSim"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/3DTrainSim/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/3DTrainSim"
+  to = "/"
+  status = 301
