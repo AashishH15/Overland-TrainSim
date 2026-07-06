@@ -273,6 +273,7 @@ export function openIntro(game, { firstRun = false } = {}) {
       </div>
       <div class="modal-footer">
         <button class="btn quiet" data-report-bug>${icon("bug")} Report bug</button>
+        <a class="btn quiet" href="https://github.com/aashishh15/3DTrainSim" target="_blank" rel="noopener noreferrer">${icon("github")} Star on GitHub</a>
         <button class="btn primary" data-close>${firstRun ? "Start building" : "Got it"}</button>
       </div>
     </div>
