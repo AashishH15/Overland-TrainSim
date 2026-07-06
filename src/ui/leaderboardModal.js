@@ -14,11 +14,21 @@ function rankBadge(rank) {
   return `<span class="rank-badge">#${rank}</span>`;
 }
 
+function hashDeviceId(id) {
+  if (!id) return "";
+  let hash = 5381;
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash * 33) ^ id.charCodeAt(i);
+  }
+  return (hash >>> 0).toString(36);
+}
+
 export async function openLeaderboardModal(game, initialMap = game?.state?.currentMap || "usa") {
   if (document.getElementById("leaderboard-modal-backdrop")) return;
 
   let currentMap = initialMap;
   const deviceId = getDeviceId();
+  const myHash = hashDeviceId(deviceId);
 
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
@@ -74,7 +84,7 @@ export async function openLeaderboardModal(game, initialMap = game?.state?.curre
 
     const rows = entries.map((e, idx) => {
       const rank = idx + 1;
-      const isSelf = e.deviceId === deviceId;
+      const isSelf = e.deviceId === deviceId || (e.deviceIdHash && e.deviceIdHash === myHash);
       return `
         <div class="lb-row ${isSelf ? "self-row" : ""}" style="display:grid; grid-template-columns:3.2rem 1fr 6rem 5rem 4.5rem; align-items:center; padding:0.55rem 0.8rem; border-bottom:1px solid rgba(255,255,255,0.05); ${isSelf ? "background:rgba(42,109,181,0.2); font-weight:bold;" : ""}">
           <div>${rankBadge(rank)}</div>

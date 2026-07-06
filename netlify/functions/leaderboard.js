@@ -22,6 +22,15 @@ function maxPlausiblePassengers(survivedSec, trains) {
   return Math.ceil(survivedSec * trains * perTrainPerSec * 3);
 }
 
+function hashDeviceId(id) {
+  if (!id) return "";
+  let hash = 5381;
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash * 33) ^ id.charCodeAt(i);
+  }
+  return (hash >>> 0).toString(36);
+}
+
 let inMemoryStore = new Map();
 
 function getSafeStore(storeName) {
@@ -79,7 +88,7 @@ export default async (req, context) => {
         passengers: e.passengers,
         trains: e.trains,
         date: e.date,
-        deviceId: e.deviceId,
+        deviceIdHash: hashDeviceId(e.deviceId),
       }));
 
       return new Response(JSON.stringify({ map, entries: topEntries }), {
