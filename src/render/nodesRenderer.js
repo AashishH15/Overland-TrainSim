@@ -61,7 +61,9 @@ export class NodesRenderer {
         ? `DEMAND SURGE`
         : node.surgeFrustrated
           ? `+12 LOST/MIN`
-          : "";
+          : node.crowded
+            ? `OVERCROWDED`
+            : "";
 
     // Pulsing 3D surge beacon ring around node ground
     const surgeBeacon = new THREE.Mesh(
@@ -175,7 +177,9 @@ export class NodesRenderer {
           ? `DEMAND SURGE`
           : node.surgeFrustrated
             ? `+12 LOST/MIN`
-            : "";
+            : node.crowded
+              ? `OVERCROWDED`
+              : "";
 
       if (m.surgeTagKey !== currentSurgeTag) {
         this.rebuildNode(node);
@@ -198,6 +202,11 @@ export class NodesRenderer {
           const p = 1.35 + 0.35 * Math.sin(Date.now() * 0.014);
           m.surgeBeacon.scale.set(p, p, 1);
           m.surgeBeacon.material.color.setHex(0xd93838);
+        } else if (node.crowded) {
+          m.surgeBeacon.visible = true;
+          const p = 1.25 + 0.25 * Math.sin(Date.now() * 0.012);
+          m.surgeBeacon.scale.set(p, p, 1);
+          m.surgeBeacon.material.color.setHex(0xef4444); // Bright Red for overcrowding
         } else {
           m.surgeBeacon.visible = false;
         }
