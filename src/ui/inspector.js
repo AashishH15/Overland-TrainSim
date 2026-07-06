@@ -50,8 +50,15 @@ export class Inspector {
       : onNetwork
         ? "On your network · no station yet"
         : "Outside your network";
+    const surgeStatus = node.surgeActive
+      ? [`🔥 Active (${node.surgeTimer || 0}s)`, "warn"]
+      : node.surgeFrustrated
+        ? ["⚠️ Expired (+12 Lost/min)", "crowded"]
+        : null;
+
     const rows = [
       ["Status", status],
+      surgeStatus ? ["Demand Surge", surgeStatus[0], surgeStatus[1]] : null,
       ["Demand", formatDemandStat(node, s)],
       node.pop ? ["Metro pop.", `${node.pop}M (rank ${node.rank})`] : null,
       node.station ? ["Platform", formatCrowdingStat(mapKey, node, s), node.crowded ? "crowded" : ""] : ["Waiting", fmtInt(waiting)],

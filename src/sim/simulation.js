@@ -8,6 +8,7 @@ import {
   serviceReachableStations,
   shouldTransferAtStop,
 } from "./serviceGraph.js";
+import { updateSurges } from "./surges.js";
 import { emit } from "../core/bus.js";
 
 let tickAcc = 0;
@@ -91,6 +92,7 @@ function spawnPassengers(state, dt) {
 function economyTick(state, dt) {
   dropoutPass(state, "usa", state.maps.usa, dt);
   dropoutPass(state, "nyc", state.maps.nyc, dt);
+  updateSurges(state, dt);
 
   const costMult = costMultiplier(state);
 
