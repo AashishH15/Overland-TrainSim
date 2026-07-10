@@ -6,6 +6,7 @@ import { icon } from "./icons.js";
 import { formatNextGoal, goalsSummary, formatNextSurvivalBadge } from "./goals.js";
 import { badgesSummary } from "../core/survivalBadges.js";
 import { formatSurvivalBest } from "../core/survivalBest.js";
+import { isMobileExperience } from "../util/device.js";
 
 export class Hud {
   constructor(game) {
@@ -278,7 +279,8 @@ export class Hud {
 
     this.toasts.appendChild(t);
     setTimeout(() => t.remove(), 4500);
-    while (this.toasts.children.length > 3) this.toasts.firstChild.remove();
+    const maxToasts = isMobileExperience() ? 2 : 3;
+    while (this.toasts.children.length > maxToasts) this.toasts.firstChild.remove();
   }
 
   buildFleet() {

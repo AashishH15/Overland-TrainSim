@@ -495,13 +495,22 @@ body {
 
 /* ---------- Mobile / touch ---------- */
 @media (max-width: 768px), (pointer: coarse) {
+  :root {
+    --mob-touch: 40px;
+    /* Full toolbar stack: top pad + tools + bottom pad/safe-area (counted once). */
+    --mob-toolbar-h: calc(0.3rem + var(--mob-touch) + max(0.35rem, env(safe-area-inset-bottom)));
+    --mob-hint-reserve: 3.25rem;
+    --mob-hint-reserve-visible: 4.75rem;
+  }
+
   html { font-size: clamp(12px, 2.8vw, 15px); }
 
-  .btn { min-height: max(2.75rem, 44px); padding: 0.35rem 0.5rem; }
+  .btn { min-height: var(--mob-touch); padding: 0.22rem 0.38rem; font-size: 0.78rem; }
   .btn.small {
-    min-height: max(2.5rem, 44px);
-    min-width: max(2.5rem, 44px);
-    padding: 0.28rem 0.45rem;
+    min-height: var(--mob-touch);
+    min-width: var(--mob-touch);
+    padding: 0.2rem 0.32rem;
+    font-size: 0.72rem;
   }
 
   .top-hud {
@@ -540,11 +549,13 @@ body {
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    gap: 0.2rem;
+    gap: 0.15rem;
     width: 100%;
   }
 
-  .fare-group .v { min-width: 2.2rem; font-size: 0.7rem; }
+  .topbar-actions .icon { width: 0.95em; height: 0.95em; }
+  .fare-group { padding: 0.1rem 0.15rem; }
+  .fare-group .v { min-width: 1.9rem; font-size: 0.68rem; }
   .stat {
     min-width: 0; flex: none; align-items: center; text-align: center;
     overflow: hidden; padding: 0.1rem 0;
@@ -555,8 +566,9 @@ body {
   }
   .stat .k { font-size: 0.5rem; line-height: 1; letter-spacing: 0; white-space: nowrap; }
   .divider { display: none; }
-  .speed-group .btn { min-width: max(2.5rem, 44px); padding-inline: 0.35rem; }
-  .fare-group .btn { min-width: max(2.5rem, 44px); }
+  .speed-group { gap: 0.15rem; }
+  .speed-group .btn { min-width: 2rem; padding-inline: 0.28rem; font-size: 0.72rem; }
+  .fare-group .btn { min-width: 1.75rem; padding-inline: 0.25rem; }
   #hud-overview { font-size: 0.72rem; }
 
   .goals-strip {
@@ -570,26 +582,30 @@ body {
   .toolbar {
     left: 0; right: 0; top: auto; bottom: 0; transform: none;
     width: auto; max-width: none;
-    flex-direction: row; flex-wrap: nowrap; justify-content: center;
+    flex-direction: row; flex-wrap: nowrap; justify-content: flex-start;
     overflow-x: auto;
+    overflow-y: visible;
     -webkit-overflow-scrolling: touch;
     border-radius: var(--r-md) var(--r-md) 0 0;
     border-bottom: none;
     padding:
-      0.35rem max(0.4rem, env(safe-area-inset-right))
-      max(0.4rem, env(safe-area-inset-bottom))
-      max(0.4rem, env(safe-area-inset-left));
-    gap: 0.28rem;
+      0.3rem max(0.35rem, env(safe-area-inset-right))
+      max(0.35rem, env(safe-area-inset-bottom))
+      max(0.35rem, env(safe-area-inset-left));
+    gap: 0.22rem;
     scroll-snap-type: x proximity;
-    z-index: 10;
+    scroll-padding-inline: max(0.35rem, env(safe-area-inset-left));
+    z-index: 12;
+    box-sizing: border-box;
   }
   .toolbar .section { display: none; }
   .tool {
     flex: 0 0 auto; width: auto;
-    min-width: max(2.75rem, 44px); min-height: max(2.75rem, 44px);
-    scroll-snap-align: start; padding: 0.45rem;
+    min-width: var(--mob-touch); min-height: var(--mob-touch);
+    scroll-snap-align: start; padding: 0.32rem;
     justify-content: center;
   }
+  .tool .icon { width: 1em; height: 1em; }
   .tool .tool-label,
   .tool .price,
   .tool .key { display: none !important; }
@@ -597,19 +613,34 @@ body {
   /* Context hints only — hidden in idle select mode via JS */
   .hintbar {
     left: 0.4rem; right: 0.4rem; transform: none;
-    bottom: calc(3.35rem + env(safe-area-inset-bottom));
+    bottom: calc(var(--mob-toolbar-h) + 0.4rem);
     white-space: normal; flex-wrap: wrap; justify-content: center;
-    text-align: center; line-height: 1.35; padding: 0.4rem 0.6rem;
-    font-size: 0.72rem; max-height: 3.6rem; overflow: hidden;
-    z-index: 9;
+    text-align: center; line-height: 1.35; padding: 0.35rem 0.55rem;
+    font-size: 0.72rem; max-height: 4.25rem; overflow: hidden;
+    z-index: 13;
   }
   .hintbar:not(.visible) { display: none !important; }
+  .hintbar .btn.small { min-height: 2rem; min-width: auto; padding: 0.2rem 0.5rem; }
 
   .toasts {
-    bottom: calc(5.5rem + env(safe-area-inset-bottom));
+    bottom: calc(var(--mob-toolbar-h) + var(--mob-hint-reserve) + 0.35rem);
     left: 0.4rem; right: 0.4rem; transform: none; align-items: stretch;
+    flex-direction: column-reverse;
+    gap: 0.3rem;
+    z-index: 20;
+    max-height: min(38vh, 9.5rem);
+    overflow: hidden;
+    pointer-events: none;
   }
-  .toast { border-radius: var(--r-md); justify-content: flex-start; font-size: 0.78rem; padding: 0.45rem 0.75rem; }
+  #hud:has(.hintbar.visible) .toasts {
+    bottom: calc(var(--mob-toolbar-h) + var(--mob-hint-reserve-visible) + 0.35rem);
+  }
+  .toast {
+    border-radius: var(--r-md); justify-content: flex-start;
+    font-size: 0.74rem; padding: 0.38rem 0.62rem; gap: 0.45rem;
+    flex-shrink: 0;
+  }
+  .toast .icon { font-size: 0.95rem; }
 
   .fleet {
     position: absolute;
