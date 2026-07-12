@@ -1,6 +1,6 @@
 # Overland: A Low-Poly 3D Train Network Builder
 
-> Cannot promise your scores to remain, this is very early in development still trying to figure out its quarks.
+> Cannot promise your scores to remain, this is very early in development still trying to figure out its quirks.
 
 A browser-based train tycoon game built with Three.js. Design, build, and operate
 a passenger rail network across two scales:
@@ -107,6 +107,22 @@ just with less real time to react.
 
 Progress autosaves to localStorage; **New Game** resets the current run (Survival
 badges and personal best persist in localStorage).
+
+## Known quirks / troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---------|--------------|-----|
+| Scores or badges reset unexpectedly | Early dev — leaderboard + local saves still evolving | See disclaimer at top; report via in-game **Report bug** |
+| Leaderboard empty locally | Netlify Blobs only work on deployed site | Test leaderboard at https://overlandgame.netlify.app/ |
+| Trains stuck or paths fail | Graph disconnected or invalid route order | Re-assign route; ensure stations are connected by track |
+| NYC water crossing too expensive | Bridge multiplier (x2.6) | Plan shorter water hops or upgrade track later |
+| Survival collapse at ~15 Lost/min | Sustained overcrowding | Add capacity, reroute trains, or pause to replan |
+| Red GitHub Pages badge | Environment protection on `github-pages` | See [Fix the bot deploy](#fix-the-bot-deploy-optional--clears-the-red--badge) below |
+
+### Leaderboard (Netlify)
+
+Survival high scores post to `netlify/functions/leaderboard.js` using Netlify Blobs.
+Local `npm run dev` does not persist global leaderboard entries — use the live deploy.
 
 ## Deployment
 
