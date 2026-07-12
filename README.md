@@ -1,146 +1,119 @@
-# Overland: A Low-Poly 3D Train Network Builder
+<div align="center">
 
-> Cannot promise your scores to remain, this is very early in development still trying to figure out its quarks.
+# Overland
 
-A browser-based train tycoon game built with Three.js. Design, build, and operate
-a passenger rail network across two scales:
+**A low-poly 3D train tycoon in your browser.**  
+Design stations, lay track, run passenger service across the USA — then unlock a detailed NYC map.
 
-- **USA National Map** - connect the 50 most-populated U.S. metro areas.
-- **NYC City Map** - build a commuter network through low-poly NYC landmarks
-  (Statue of Liberty, Empire State Building, Times Square, Central Park...).
+[![Play](https://img.shields.io/badge/▶_Play-overlandgame.netlify.app-1d4ed8?style=for-the-badge)](https://overlandgame.netlify.app/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge)](LICENSE)
 
-## Play
+<br>
 
-**Play in your browser: https://overlandgame.netlify.app/**
+![Overland gameplay — build a rail network across the USA](docs/assets/demo.gif)
 
-Or run locally:
+*Survival badges · Tycoon milestones · Global leaderboard · Autosave · Mobile-friendly*
+
+<br>
+
+[**Play now →**](https://overlandgame.netlify.app/) &nbsp;·&nbsp; [**Run locally**](#run-locally) &nbsp;·&nbsp; [**Report a bug**](https://github.com/AashishH15/3DTrainSim/issues/new)
+
+</div>
+
+---
+
+> **Early development** — balance and features are still evolving. Saves, badges, and leaderboard entries are stored locally in your browser.
+
+## Features
+
+| | |
+|---|---|
+| **Two maps** | **USA** — 50 major metros. **NYC** — landmark stops with water crossings and bridges. |
+| **Two modes** | **Tycoon** — milestones and win conditions. **Survival** — endure escalating demand and climb the leaderboard. |
+| **Deep building** | Standard, high-speed, and maglev track · mid-line junctions · station capacity upgrades · train tiers. |
+| **Living network** | Rush-hour demand, transfers, overcrowding pressure, demand surges, share cards, and run history. |
+
+## Run locally
 
 ```bash
 npm install
 npm run dev
 ```
 
-Then open the printed local URL (default http://localhost:5173).
+Open the printed URL (default `http://localhost:5173`).
 
 ## How to play
 
-1. **Build stations:** pick the Station tool and click a stop. On the USA map you
-   start in 12 major metros — click gray stops to **expand your network** into
-   new cities (cost scales with metro size). On the NYC map every landmark is
-   available from the start.
-2. **Lay track:** pick a track type and click station-to-station. Water
-   crossings in NYC cost x2.6 (bridges are rendered automatically).
-   - Standard Track: cheap, Tier I trains only
-   - High-Speed Track: Tier I & II
-   - Maglev Guideway: Tier III only
-3. **Buy a train** and click stations in order to set its loop route, then
-   press Done (or Enter).
-4. Passengers spawn at stations based on demand and rush-hour cycles, board
-   trains heading to their destination, and pay fares scaled by distance and
-   train tier. Track maintenance and train operating costs drain cash.
-5. **New Game** opens a mode picker — see [Game modes](#game-modes) below.
-6. Track can be **upgraded** in place (click it in Select mode) and demolished
-   for a 25% refund. Trains can be sold for 50%.
+1. **Build stations** — Station tool → click a stop. On the USA map, expand into gray metros (cost scales with city size).
+2. **Lay track** — Pick a track type, click station to station. Tracks auto-connect through stationed cities on the line. Click an existing segment to branch via a junction.
+3. **Buy a train** (`B`) — Click stops in order to set a loop route, then **Done**.
+4. **Earn & reinvest** — Passengers pay fares; maintenance and ops drain cash. Upgrade track and trains in **Select** mode.
 
-### Game modes
+**Track types:** Standard (Tier I) · High-Speed (Tier I–II) · Maglev (Tier III only)  
+**Tips:** Network overview (`O`) · Past runs (clock icon) · Share your network from the HUD
 
-Choose **Tycoon** or **Survival** when starting a new run (or from the mode picker
-on load). Both modes share the same maps, tools, and economy basics; they differ
-in pressure, scoring, and what “winning” means.
+## Game modes
 
 | | **Tycoon** | **Survival** |
 |---|---|---|
-| Goal | Milestones + win conditions | Badges + personal best time |
-| Fail state | Bankruptcy below **−$250k** | **Network collapse** (sustained high Lost/min) |
-| Demand growth | Linear, modest cap | Compound, higher cap |
-| Crowding | Lighter platform limits | Pop-scaled, tighter limits |
-| HUD timer | **Time elapsed** | **Survived** (sim-time) |
-| Lost/min stat | Hidden | Always visible |
+| **Goal** | Milestones + win conditions | Badges + personal best time |
+| **Fail state** | Bankruptcy below **−$250k** | **Network collapse** (sustained high Lost/min) |
+| **Pressure** | Linear demand growth | Compound growth, tighter crowding |
+| **HUD** | Time elapsed | Survived + Lost/min + strikes |
 
-**Shared:** The sim clock does not start until the first passengers spawn — you
-can lay track, buy trains, and assign routes without maintenance, debt pressure,
-or timer counting against you. Once riders appear at a connected station, the
-clock starts and the run is scored from there.
+The sim clock starts when the **first passengers spawn** — build freely until riders appear.
 
-#### Tycoon
+### Tycoon
 
-Classic empire builder. Open the medal button for **Milestones** — expand your
-network, grow revenue, and hit win conditions (**all 50 US metros** or
-**$5M cash**). You can keep playing after a win. Stay above **−$250k** or you
-go bankrupt after a grace period.
+Open **Milestones** (medal icon). Expand to all **50 US metros** or reach **$5M cash** to win. Stay above **−$250k** or face bankruptcy after a grace period.
 
-#### Survival
+### Survival
 
-Endurance mode — no bankruptcy, no win screen. Demand escalates over sim-time;
-overcrowded stations cause riders to leave. If **Lost/min** stays at or above
-**15** for too long (~4 sim-minutes sustained), the network **collapses**. Your
-**Survived** time is the run score; a **personal best** is saved locally.
+No bankruptcy — survive as long as you can. **Lost/min** above **15** for too long triggers **network collapse**. **16 badges** across duration, skill, network, expert, and a **Jack of all trades** capstone. Sim-time counts (4× speed does not shorten duration badges).
 
-Open the medal button for **Survival badges** — 16 lifetime achievements across
-five categories (unlocked once per browser, not per save):
-
-| Category | Examples |
-|---|---|
-| **Duration** | Rush Hour Veteran (10m), Peak Operator (30m), Iron Rail (1h) |
-| **Skill** | Clean sheet (20m zero lost), Minimalist (30m with ≤2 trains), Smooth operator (4 trains, no overcrowding) |
-| **Network** | National network (50 metros), Mass transit / Nation moved / Main line (10k–100k delivered), City network (15 NYC stations) |
-| **Expert** | Empire Grade (5h), Empire Ascendant (10h), Mass Transit Titan (1M delivered), Maglev Nation (all 50 metros on Maglev Guideway only) |
-| **Capstone** | **Jack of all trades** — unlock every other Survival badge |
-
-Badge progress uses **sim-time** (not wall-clock), so playing at 4× speed does
-not shorten duration badges — you still survive the same amount of in-game time,
-just with less real time to react.
-
-### Controls
+## Controls
 
 | Input | Action |
 |---|---|
-| Drag / scroll | Orbit / zoom the camera |
-| `0` | Move / pan map |
-| `1`-`6` | Select tools (select, station, tracks, bulldoze) |
+| Drag / scroll | Orbit / zoom |
+| `0` | Pan map |
+| `1`–`6` | Tools (select, station, tracks, bulldoze) |
 | `B` | Train shop |
-| `O` | Network overview (all stations) |
+| `O` | Network overview |
 | `Space` | Pause |
-| Right-click / `Esc` | Cancel current action |
+| `Esc` / right-click | Cancel |
 
-Progress autosaves to localStorage; **New Game** resets the current run (Survival
-badges and personal best persist in localStorage).
+Progress autosaves to `localStorage`. **New Game** resets the current run; Survival badges and personal best persist.
 
 ## Deployment
 
-**Live site:** https://overlandgame.netlify.app/
+**Live:** [overlandgame.netlify.app](https://overlandgame.netlify.app/)
 
-Pushes to `main` build and push `dist/` to **`gh-pages`** via `.github/workflows/deploy.yml`.
+Pushes to `main` also build `dist/` and deploy to **`gh-pages`** via `.github/workflows/deploy.yml`.
 
-### Pages settings
+<details>
+<summary>GitHub Pages setup & troubleshooting</summary>
 
-**Settings → Pages → Source:** **Deploy from a branch** → **`gh-pages`** → **`/ (root)`**
+**Settings → Pages → Source:** Deploy from branch **`gh-pages`** / **`/ (root)`**
 
-When **Deploy to GitHub Pages** is green, your site is updated. You may also see a
-red **pages build and deployment** run from GitHub’s bot — that is optional to fix.
+If you see `Branch "main" is not allowed to deploy to github-pages`:
 
-### Fix the bot deploy (optional — clears the red ❌ badge)
+1. **Settings → Environments → `github-pages`**
+2. **Deployment branches** → **No restriction** (or add `main` and `gh-pages`)
+3. Disable **Required reviewers** if enabled
+4. Re-run the failed deploy
 
-**Settings → Environments → `github-pages`**
+The red **pages build and deployment** bot job is optional; the workflow deploy is what updates the site.
 
-1. Open the **`github-pages`** environment (not Pages — **Environments** in the left sidebar under Settings)
-2. **Deployment branches** → **No restriction**  
-   (or **Selected branches** and add both **`main`** and **`gh-pages`**)
-3. Turn off **Required reviewers** if it is enabled
-4. Save, then re-run the failed **pages build and deployment** job
-
-The error `Branch "main" is not allowed to deploy to github-pages due to environment
-protection rules` means step 2 is still blocking deploys. Our workflow does not
-use that environment; only GitHub’s publish step does.
+</details>
 
 ## Tech
 
-- Three.js (vanilla), Vite
-- d3-geo Albers-USA projection + us-atlas TopoJSON for the national map
-- Graph-based track network (Dijkstra pathfinding for trains and fares)
-- Tick-based passenger/economy simulation decoupled from the render loop
-- UI icons: [Phosphor Icons](https://phosphoricons.com) (MIT license)
-- Font: [Outfit](https://fonts.google.com/specimen/Outfit) (OFL) via Fontsource
+- **Three.js** + Vite — low-poly 3D maps
+- **d3-geo** Albers-USA + us-atlas TopoJSON
+- Graph network with Dijkstra pathfinding
+- Tick-based passenger simulation (decoupled from render loop)
+- Icons: [Phosphor](https://phosphoricons.com) (MIT) · Font: [Outfit](https://fonts.google.com/specimen/Outfit) (OFL)
 
 ## License
 
